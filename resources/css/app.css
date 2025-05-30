@@ -1,0 +1,94 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Global Brand Colors */
+    --color-primary: #FE5000;
+    --color-primary-hover: #E5470A;
+    --color-primary-dark: #CC3F00;
+
+    /* Custom color palette */
+    --color-brand-50: #FFF2F0;
+    --color-brand-100: #FFE5E0;
+    --color-brand-200: #FFCCC1;
+    --color-brand-300: #FFB3A2;
+    --color-brand-400: #FF9983;
+    --color-brand-500: #FE5000;
+    --color-brand-600: #E5470A;
+    --color-brand-700: #CC3F00;
+    --color-brand-800: #B33600;
+    --color-brand-900: #992E00;
+
+    /* Semantic colors */
+    --color-background-light: #FDFDFC;
+    --color-surface-light: #FFFFFF;
+    --color-text-primary-light: #1b1b18;
+    --color-text-secondary-light: #706f6c;
+    --color-border-light: #e3e3e0;
+
+    --color-background-dark: #0a0a0a;
+    --color-surface-dark: #161615;
+    --color-text-primary-dark: #EDEDEC;
+    --color-text-secondary-dark: #A1A09A;
+    --color-border-dark: #3E3E3A;
+
+    /* Extend Tailwind color palette */
+    --color-brand: var(--color-brand-500);
+    --color-red-500: #FE5000;
+    --color-red-600: #E5470A;
+    --color-red-700: #CC3F00;
+}
+
+/* Utility classes for brand colors */
+@layer utilities {
+    .text-brand {
+        color: var(--color-primary);
+    }
+
+    .text-brand-hover:hover {
+        color: var(--color-primary-hover);
+    }
+
+    .bg-brand {
+        background-color: var(--color-primary);
+    }
+
+    .bg-brand-hover:hover {
+        background-color: var(--color-primary-hover);
+    }
+
+    .border-brand {
+        border-color: var(--color-primary);
+    }
+
+    .border-brand-hover:hover {
+        border-color: var(--color-primary-hover);
+    }
+}
+
+/* Sticky Footer Layout */
+@layer base {
+    html, body {
+        height: 100%;
+    }
+
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .main-content {
+        flex: 1;
+    }
+
+    .sticky-footer {
+        margin-top: auto;
+    }
+}
