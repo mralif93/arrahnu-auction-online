@@ -1,0 +1,319 @@
+@extends('layouts.admin')
+
+@section('title', 'Account Management')
+
+@section('header-content')
+    <h1 class="text-2xl font-bold text-[#1b1b18] dark:text-[#EDEDEC]">Account Management</h1>
+    <p class="text-sm text-[#706f6c] dark:text-[#A1A09A]">Welcome back, {{ Auth::user()->full_name ?? 'Administrator' }}</p>
+@endsection
+
+@section('header-actions')
+    <div class="flex items-center space-x-4">
+        <div class="text-right">
+            <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">{{ now()->format('l, F j, Y') }}</div>
+            <div class="text-xs text-[#706f6c] dark:text-[#A1A09A]">{{ now()->format('g:i A') }}</div>
+        </div>
+    </div>
+@endsection
+
+@section('content')
+
+                    <!-- Account Statistics -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <!-- Total Accounts -->
+                        <div class="bg-white dark:bg-[#161615] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] rounded-lg p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-[#706f6c] dark:text-[#A1A09A] mb-1">Total Accounts</p>
+                                    <p class="text-3xl font-bold text-brand">{{ $totalAccounts }}</p>
+                                    <p class="text-sm text-[#706f6c] dark:text-[#A1A09A]">All account types</p>
+                                </div>
+                                <div class="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Accounts -->
+                        <div class="bg-white dark:bg-[#161615] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] rounded-lg p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-[#706f6c] dark:text-[#A1A09A] mb-1">Active Accounts</p>
+                                    <p class="text-3xl font-bold text-green-600 dark:text-green-400">{{ $activeAccounts }}</p>
+                                    <p class="text-sm text-green-600 dark:text-green-400">Currently operational</p>
+                                </div>
+                                <div class="w-12 h-12 bg-green-100 dark:bg-green-900/20 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Value -->
+                        <div class="bg-white dark:bg-[#161615] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] rounded-lg p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-[#706f6c] dark:text-[#A1A09A] mb-1">Total Balance</p>
+                                    <p class="text-3xl font-bold text-brand">${{ number_format($totalValue, 0) }}</p>
+                                    <p class="text-sm text-[#706f6c] dark:text-[#A1A09A]">Outstanding loans</p>
+                                </div>
+                                <div class="w-12 h-12 bg-brand/10 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Collateral Items -->
+                        <div class="bg-white dark:bg-[#161615] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] rounded-lg p-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-[#706f6c] dark:text-[#A1A09A] mb-1">Collateral Items</p>
+                                    <p class="text-3xl font-bold text-[#706f6c] dark:text-[#A1A09A]">{{ $accounts->sum(function($account) { return $account->collaterals->count(); }) }}</p>
+                                    <p class="text-sm text-[#706f6c] dark:text-[#A1A09A]">Total items</p>
+                                </div>
+                                <div class="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center">
+                                    <svg class="w-6 h-6 text-[#706f6c] dark:text-[#A1A09A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Accounts List -->
+                    <div class="bg-white dark:bg-[#161615] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] rounded-lg overflow-hidden">
+                        <div class="px-6 py-4 border-b border-[#e3e3e0] dark:border-[#3E3E3A] flex items-center justify-between">
+                            <div>
+                                <h3 class="text-lg font-semibold text-[#1b1b18] dark:text-[#EDEDEC]">All Accounts</h3>
+                                <p class="text-sm text-[#706f6c] dark:text-[#A1A09A]">Manage customer accounts and collateral</p>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <!-- Add Account Button -->
+                                <a href="{{ route('admin.accounts.create') }}" class="inline-flex items-center px-4 py-2 bg-brand hover:bg-brand-hover text-white text-sm font-medium rounded-lg transition-colors">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    Add Account
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto border border-[#e3e3e0] dark:border-[#3E3E3A] rounded-lg">
+                            <table class="min-w-full divide-y divide-[#e3e3e0] dark:divide-[#3E3E3A]">
+                                <thead class="bg-[#f8f8f7] dark:bg-[#1a1a19]">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-[#706f6c] dark:text-[#A1A09A] uppercase tracking-wider border-r border-[#e3e3e0] dark:border-[#3E3E3A]">
+                                            Account
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-[#706f6c] dark:text-[#A1A09A] uppercase tracking-wider border-r border-[#e3e3e0] dark:border-[#3E3E3A]">
+                                            Branch
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-[#706f6c] dark:text-[#A1A09A] uppercase tracking-wider border-r border-[#e3e3e0] dark:border-[#3E3E3A]">
+                                            Type
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-[#706f6c] dark:text-[#A1A09A] uppercase tracking-wider border-r border-[#e3e3e0] dark:border-[#3E3E3A]">
+                                            Collaterals
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-[#706f6c] dark:text-[#A1A09A] uppercase tracking-wider border-r border-[#e3e3e0] dark:border-[#3E3E3A]">
+                                            Status
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-[#706f6c] dark:text-[#A1A09A] uppercase tracking-wider border-r border-[#e3e3e0] dark:border-[#3E3E3A]">
+                                            Created & Approved
+                                        </th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-[#706f6c] dark:text-[#A1A09A] uppercase tracking-wider">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white dark:bg-[#161615] divide-y divide-[#e3e3e0] dark:divide-[#3E3E3A]">
+                                    @foreach($accounts as $account)
+                                        <tr class="hover:bg-[#f8f8f7] dark:hover:bg-[#1a1a19] transition-colors">
+                                            <td class="px-6 py-4 whitespace-nowrap border-r border-[#e3e3e0] dark:border-[#3E3E3A]">
+                                                <div class="flex items-center">
+                                                    <div class="w-10 h-10 bg-brand/10 rounded-lg flex items-center justify-center mr-4">
+                                                        <span class="text-brand font-medium text-sm">
+                                                            {{ strtoupper(substr($account->account_title, 0, 2)) }}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <div class="text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC]">
+                                                            {{ $account->account_title }}
+                                                        </div>
+                                                        <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">
+                                                            ID: {{ Str::limit($account->id, 8) }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap border-r border-[#e3e3e0] dark:border-[#3E3E3A]">
+                                                <div class="text-sm text-[#1b1b18] dark:text-[#EDEDEC]">
+                                                    {{ $account->branch->name }}
+                                                </div>
+                                                <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">
+                                                    {{ Str::limit($account->branch->address, 30) }}
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap border-r border-[#e3e3e0] dark:border-[#3E3E3A]">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200">
+                                                    Asset Group
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap border-r border-[#e3e3e0] dark:border-[#3E3E3A]">
+                                                <div class="flex items-center">
+                                                    <span class="text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC] mr-2">
+                                                        {{ $account->collaterals->count() }}
+                                                    </span>
+                                                    @if($account->collaterals->count() > 0)
+                                                        <a href="{{ route('admin.accounts.collaterals', $account) }}"
+                                                           class="text-xs text-brand hover:text-brand-hover transition-colors">
+                                                            View Items
+                                                        </a>
+                                                    @else
+                                                        <span class="text-xs text-[#706f6c] dark:text-[#A1A09A]">No items</span>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap border-r border-[#e3e3e0] dark:border-[#3E3E3A]">
+                                                @if($account->status === 'active')
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
+                                                            <circle cx="4" cy="4" r="3"/>
+                                                        </svg>
+                                                        {{ ucfirst($account->status) }}
+                                                    </span>
+                                                @elseif($account->status === 'pending_approval')
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
+                                                            <circle cx="4" cy="4" r="3"/>
+                                                        </svg>
+                                                        Pending
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-900/20 text-gray-800 dark:text-gray-200">
+                                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
+                                                            <circle cx="4" cy="4" r="3"/>
+                                                        </svg>
+                                                        {{ ucfirst($account->status) }}
+                                                    </span>
+                                                @endif
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap border-r border-[#e3e3e0] dark:border-[#3E3E3A]">
+                                                <div class="space-y-1">
+                                                    <div class="text-sm text-[#1b1b18] dark:text-[#EDEDEC]">
+                                                        {{ $account->created_at->format('M d, Y') }}
+                                                    </div>
+                                                    @if($account->creator)
+                                                        <div class="text-xs text-[#706f6c] dark:text-[#A1A09A]">
+                                                            By: {{ $account->creator->full_name }}
+                                                        </div>
+                                                    @endif
+                                                    @if($account->approvedBy)
+                                                        <div class="text-xs text-green-600">
+                                                            Approved by: {{ $account->approvedBy->full_name }}
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                                <div class="flex items-center space-x-2">
+                                                    <!-- View Details -->
+                                                    <a href="{{ route('admin.accounts.show', $account) }}"
+                                                       class="px-3 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 text-xs font-medium rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors">
+                                                        View
+                                                    </a>
+
+                                                    <!-- Edit Account -->
+                                                    @if($account->status !== 'active' && (auth()->user()->canMake() || $account->created_by_user_id === auth()->id()))
+                                                        <a href="{{ route('admin.accounts.edit', $account) }}"
+                                                           class="px-3 py-1 bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-200 text-xs font-medium rounded-full hover:bg-purple-200 dark:hover:bg-purple-900/40 transition-colors">
+                                                            Edit
+                                                        </a>
+                                                    @endif
+
+                                                    <!-- Approval Actions -->
+                                                    @if($account->status === 'pending_approval' && auth()->user()->canApprove($account))
+                                                        <form method="POST" action="{{ route('admin.accounts.approve', $account) }}" class="inline">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                    class="px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200 text-xs font-medium rounded-full hover:bg-green-200 dark:hover:bg-green-900/40 transition-colors"
+                                                                    onclick="return confirm('Approve {{ $account->account_title }}?')">
+                                                                Approve
+                                                            </button>
+                                                        </form>
+                                                        <form method="POST" action="{{ route('admin.accounts.reject', $account) }}" class="inline">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                    class="px-3 py-1 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200 text-xs font-medium rounded-full hover:bg-red-200 dark:hover:bg-red-900/40 transition-colors"
+                                                                    onclick="return confirm('Reject {{ $account->account_title }}?')">
+                                                                Reject
+                                                            </button>
+                                                        </form>
+                                                    @endif
+
+                                                    <!-- Submit for Approval -->
+                                                    @if($account->status === 'draft' && ($account->created_by_user_id === auth()->id() || auth()->user()->isAdmin()))
+                                                        <form method="POST" action="{{ route('admin.accounts.submit-for-approval', $account) }}" class="inline">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                    class="px-3 py-1 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 text-xs font-medium rounded-full hover:bg-yellow-200 dark:hover:bg-yellow-900/40 transition-colors"
+                                                                    onclick="return confirm('Submit {{ $account->account_title }} for approval?')">
+                                                                Submit
+                                                            </button>
+                                                        </form>
+                                                    @endif
+
+                                                    <!-- Toggle Status (for active/inactive) -->
+                                                    @if(in_array($account->status, ['active', 'inactive']) && auth()->user()->isAdmin())
+                                                        <form method="POST" action="{{ route('admin.accounts.toggle-status', $account) }}" class="inline">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                    class="px-3 py-1 {{ $account->status === 'active' ? 'bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-200 hover:bg-orange-200 dark:hover:bg-orange-900/40' : 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-900/40' }} text-xs font-medium rounded-full transition-colors"
+                                                                    onclick="return confirm('{{ $account->status === 'active' ? 'Deactivate' : 'Activate' }} {{ $account->account_title }}?')">
+                                                                {{ $account->status === 'active' ? 'Deactivate' : 'Activate' }}
+                                                            </button>
+                                                        </form>
+                                                    @endif
+
+                                                    <!-- Delete Account -->
+                                                    @if(auth()->user()->canMake() || $account->created_by_user_id === auth()->id())
+                                                        @if($account->status !== 'active' || $account->collaterals()->count() === 0)
+                                                            <form method="POST" action="{{ route('admin.accounts.destroy', $account) }}" class="inline">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit"
+                                                                        class="px-3 py-1 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200 text-xs font-medium rounded-full hover:bg-red-200 dark:hover:bg-red-900/40 transition-colors"
+                                                                        onclick="return confirm('Are you sure you want to delete {{ $account->account_title }}? This action cannot be undone.')">
+                                                                    Delete
+                                                                </button>
+                                                            </form>
+                                                        @endif
+                                                    @endif
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        @if($accounts->isEmpty())
+                            <div class="text-center py-12">
+                                <svg class="mx-auto h-12 w-12 text-[#706f6c] dark:text-[#A1A09A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                                <h3 class="mt-2 text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC]">No accounts</h3>
+                                <p class="mt-1 text-sm text-[#706f6c] dark:text-[#A1A09A]">Get started by creating a new customer account.</p>
+                                <div class="mt-6">
+                                    <a href="{{ route('admin.accounts.create') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand hover:bg-brand-hover">
+                                        Add Account
+                                    </a>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+@endsection

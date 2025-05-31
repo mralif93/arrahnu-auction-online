@@ -12,13 +12,37 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
-            $table->timestamps();
+            $table->uuid('id')->primary();
+            $table->string('username', 50)->unique();
+            $table->string('password_hash', 255);
+            $table->string('email', 100)->unique();
+            $table->boolean('is_email_verified')->default(false);
+            $table->string('email_verification_token', 255)->nullable();
+            $table->timestampTz('email_verification_sent_at')->nullable();
+            $table->string('full_name', 100)->nullable();
+            $table->string('phone_number', 20)->unique()->nullable();
+            $table->boolean('is_phone_verified')->default(false);
+            $table->string('phone_verification_code', 10)->nullable();
+            $table->timestampTz('phone_verification_sent_at')->nullable();
+            $table->enum('role', ['maker', 'checker', 'bidder']);
+            $table->enum('status', ['draft', 'pending_approval', 'active', 'inactive', 'rejected'])->default('draft');
+            $table->boolean('is_admin')->default(false);
+            $table->boolean('is_staff')->default(false);
+            $table->uuid('primary_address_id')->nullable();
+            $table->string('locked_device_identifier', 255)->unique()->nullable();
+            $table->timestampTz('first_login_at')->nullable();
+            $table->timestampTz('last_login_at')->nullable();
+            $table->string('reset_password_token', 255)->unique()->nullable();
+            $table->timestampTz('reset_password_expires_at')->nullable();
+            $table->uuid('created_by_user_id')->nullable();
+            $table->uuid('approved_by_user_id')->nullable();
+            $table->timestampsTz();
+
+            // Performance indexes
+            $table->index('email_verification_token', 'idx_users_email_verification_token');
+            $table->index('phone_verification_code', 'idx_users_phone_verification_code');
+            $table->index('locked_device_identifier', 'idx_users_locked_device_identifier');
+            $table->index('reset_password_token', 'idx_users_reset_password_token');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {

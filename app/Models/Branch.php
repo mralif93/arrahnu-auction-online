@@ -2,93 +2,167 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\HasAuditTrail;
 
 class Branch extends Model
 {
-    use HasFactory;
+    use HasFactory, HasUuids, HasAuditTrail;
 
+    /**
+     * The table associated with the model.
+     */
+    protected $table = 'branches';
+
+    /**
+     * The primary key associated with the table.
+     */
+    protected $primaryKey = 'id';
+
+    /**
+     * The data type of the primary key ID.
+     */
+    protected $keyType = 'string';
+
+    /**
+     * Indicates if the model's ID is auto-incrementing.
+     */
+    public $incrementing = false;
+
+    /**
+     * The attributes that are mass assignable.
+     */
     protected $fillable = [
         'name',
-        'code',
         'address',
-        'city',
-        'state',
-        'postal_code',
-        'country',
-        'phone',
-        'email',
-        'manager_id',
-        'is_active',
+        'phone_number',
         'description',
-        'latitude',
-        'longitude',
-        'operating_hours',
+        'status',
+        'created_by_user_id',
+        'approved_by_user_id',
     ];
 
+    /**
+     * The attributes that should be cast.
+     */
     protected $casts = [
-        'is_active' => 'boolean',
-        'operating_hours' => 'array',
-        'latitude' => 'decimal:8',
-        'longitude' => 'decimal:8',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**
-     * Get the manager for this branch
+     * The attributes that should be hidden for serialization.
      */
-    public function manager(): BelongsTo
+    protected $hidden = [];
+
+    /**
+     * Status constants
+     */
+    const STATUS_DRAFT = 'draft';
+    const STATUS_PENDING_APPROVAL = 'pending_approval';
+    const STATUS_ACTIVE = 'active';
+    const STATUS_INACTIVE = 'inactive';
+    const STATUS_REJECTED = 'rejected';
+
+    /**
+     * Get the user who created this branch.
+     */
+    public function createdBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'manager_id');
+        return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
     /**
-     * Get the full address as a string
+     * Get the user who created this branch (alias).
      */
-    public function getFullAddressAttribute(): string
+    public function creator(): BelongsTo
     {
-        return "{$this->address}, {$this->city}, {$this->state} {$this->postal_code}, {$this->country}";
+        return $this->belongsTo(User::class, 'created_by_user_id');
     }
 
     /**
-     * Check if branch is currently open
+     * Get the user who approved this branch.
      */
-    public function isOpen(): bool
+    public function approvedBy(): BelongsTo
     {
-        if (!$this->operating_hours) {
-            return false;
-        }
-
-        $currentDay = strtolower(now()->format('l'));
-        $currentTime = now()->format('H:i');
-
-        if (!isset($this->operating_hours[$currentDay])) {
-            return false;
-        }
-
-        $hours = $this->operating_hours[$currentDay];
-
-        if ($hours['closed'] ?? false) {
-            return false;
-        }
-
-        return $currentTime >= $hours['open'] && $currentTime <= $hours['close'];
+        return $this->belongsTo(User::class, 'approved_by_user_id');
     }
 
     /**
-     * Scope for active branches
+     * Get the accounts for this branch.
+     */
+    public function accounts(): HasMany
+    {
+        return $this->hasMany(Account::class, 'branch_id');
+    }
+
+    /**
+     * Scope a query to only include active branches.
      */
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        return $query->where('status', self::STATUS_ACTIVE);
     }
 
     /**
-     * Scope for branches in a specific city
+     * Scope a query to only include pending approval branches.
      */
-    public function scopeInCity($query, $city)
+    public function scopePendingApproval($query)
     {
-        return $query->where('city', $city);
+        return $query->where('status', self::STATUS_PENDING_APPROVAL);
+    }
+
+    /**
+     * Check if the branch is active.
+     */
+    public function isActive(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE;
+    }
+
+    /**
+     * Check if the branch is pending approval.
+     */
+    public function isPendingApproval(): bool
+    {
+        return $this->status === self::STATUS_PENDING_APPROVAL;
+    }
+
+    /**
+     * Approve the branch.
+     */
+    public function approve(User $approver): bool
+    {
+        if ($this->status !== self::STATUS_PENDING_APPROVAL) {
+            return false;
+        }
+
+        $this->update([
+            'status' => self::STATUS_ACTIVE,
+            'approved_by_user_id' => $approver->id,
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Reject the branch.
+     */
+    public function reject(User $approver): bool
+    {
+        if ($this->status !== self::STATUS_PENDING_APPROVAL) {
+            return false;
+        }
+
+        $this->update([
+            'status' => self::STATUS_REJECTED,
+            'approved_by_user_id' => $approver->id,
+        ]);
+
+        return true;
     }
 }

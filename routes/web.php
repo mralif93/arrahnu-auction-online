@@ -1,239 +1,164 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+use App\Http\Controllers\PublicController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\BranchController;
+use App\Http\Controllers\Admin\AccountController;
+use App\Http\Controllers\Admin\CollateralController;
+use App\Http\Controllers\Admin\AuctionController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "web" middleware group. Make something great!
+|
+*/
 
-// Test page for password reset functionality
+// ============================================================================
+// PUBLIC ROUTES (No Authentication Required)
+// ============================================================================
+
+// Homepage
+Route::get('/', [PublicController::class, 'home'])->name('home');
+
+// Static Pages
+Route::get('/how-it-works', [PublicController::class, 'howItWorks'])->name('how-it-works');
+Route::get('/about', [PublicController::class, 'about'])->name('about');
+
+// Public Auctions
+Route::get('/auctions', [PublicController::class, 'auctions'])->name('auctions.index');
+Route::get('/auctions/{collateral}', [PublicController::class, 'auctionDetails'])->name('auctions.show');
+
+// Development/Testing Routes
 Route::get('/test-password-reset', function () {
     return view('test-password-reset');
 })->name('test.password.reset');
-
-// Static pages
-Route::get('/how-it-works', function () {
-    return view('how-it-works');
-})->name('how-it-works');
-
-Route::get('/about', function () {
-    return view('about');
-})->name('about');
 
 Route::get('/color-test', function () {
     return view('color-test');
 })->name('color-test');
 
-Route::get('/auctions', function () {
-    return view('auctions.index');
-})->name('auctions.index');
+// ============================================================================
+// ADMIN ROUTES (Admin Users Only)
+// ============================================================================
 
-// Admin routes
-Route::middleware(['auth', 'admin'])->group(function () {
-    Route::get('/admin/dashboard', function () {
-        return view('admin.dashboard-sidebar');
-    })->name('admin.dashboard');
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
 
-    Route::get('/admin/users', function () {
-        $users = \App\Models\User::orderBy('created_at', 'desc')->get();
-        return view('admin.users-sidebar', compact('users'));
-    })->name('admin.users');
-
-    Route::post('/admin/users/{user}/toggle-admin', function (\App\Models\User $user) {
-        // Prevent admin from removing their own admin status
-        if ($user->id === Auth::id() && $user->isAdmin()) {
-            return redirect()->back()->with('error', 'You cannot remove your own admin privileges.');
-        }
-
-        $user->is_admin = !$user->is_admin;
-        $user->save();
-
-        $action = $user->is_admin ? 'granted' : 'removed';
-        $message = "Admin privileges {$action} for {$user->name}.";
-
-        return redirect()->back()->with('success', $message);
-    })->name('admin.users.toggle-admin');
-
-    Route::put('/admin/users/{user}', function (\App\Models\User $user, \Illuminate\Http\Request $request) {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'is_admin' => 'boolean',
-        ]);
-
-        // Prevent admin from removing their own admin status
-        if ($user->id === Auth::id() && $user->isAdmin() && !$request->has('is_admin')) {
-            return redirect()->back()->with('error', 'You cannot remove your own admin privileges.');
-        }
-
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-            'is_admin' => $request->has('is_admin'),
-        ]);
-
-        return redirect()->back()->with('success', "User {$user->name} has been updated successfully.");
-    })->name('admin.users.update');
-
-    Route::delete('/admin/users/{user}', function (\App\Models\User $user) {
-        // Prevent admin from deleting their own account
-        if ($user->id === Auth::id()) {
-            return redirect()->back()->with('error', 'You cannot delete your own account.');
-        }
-
-        $userName = $user->name;
-        $user->delete();
-
-        return redirect()->back()->with('success', "User {$userName} has been deleted.");
-    })->name('admin.users.delete');
+    // Admin Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Admin Profile Settings
-    Route::get('/admin/profile', function () {
-        $totalUsers = \App\Models\User::count();
-        $totalAdmins = \App\Models\User::where('is_admin', true)->count();
-        $recentUsers = \App\Models\User::orderBy('created_at', 'desc')->take(5)->get();
+    Route::get('/profile', [DashboardController::class, 'profile'])->name('profile');
 
-        return view('admin.profile', compact('totalUsers', 'totalAdmins', 'recentUsers'));
-    })->name('admin.profile');
+    // ========================================================================
+    // USER MANAGEMENT
+    // ========================================================================
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::get('/', [AdminUserController::class, 'index'])->name('index');
+        Route::put('/{user}', [AdminUserController::class, 'update'])->name('update');
+        Route::post('/{user}/toggle-admin', [AdminUserController::class, 'toggleAdmin'])->name('toggle-admin');
+        Route::delete('/{user}', [AdminUserController::class, 'destroy'])->name('delete');
+    });
 
-    // Branch Management Routes
-    Route::get('/admin/branches', function () {
-        $branches = \App\Models\Branch::with('manager')->orderBy('created_at', 'desc')->get();
-        $totalBranches = $branches->count();
-        $activeBranches = $branches->where('is_active', true)->count();
-        $users = \App\Models\User::where('is_admin', true)->get();
+    // ========================================================================
+    // BRANCH MANAGEMENT
+    // ========================================================================
+    Route::prefix('branches')->name('branches.')->group(function () {
+        Route::get('/', [BranchController::class, 'index'])->name('index');
+        Route::get('/create', [BranchController::class, 'create'])->name('create');
+        Route::post('/', [BranchController::class, 'store'])->name('store');
+        Route::get('/{branch}', [BranchController::class, 'show'])->name('show');
+        Route::get('/{branch}/edit', [BranchController::class, 'edit'])->name('edit');
+        Route::put('/{branch}', [BranchController::class, 'update'])->name('update');
+        Route::delete('/{branch}', [BranchController::class, 'destroy'])->name('destroy');
 
-        return view('admin.branches', compact('branches', 'totalBranches', 'activeBranches', 'users'));
-    })->name('admin.branches');
+        // Status management
+        Route::post('/{branch}/toggle-status', [BranchController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('/{branch}/submit-for-approval', [BranchController::class, 'submitForApproval'])->name('submit-for-approval');
 
-    Route::post('/admin/branches', function (\Illuminate\Http\Request $request) {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'code' => 'required|string|max:10|unique:branches,code',
-            'address' => 'required|string',
-            'city' => 'required|string|max:100',
-            'state' => 'required|string|max:50',
-            'postal_code' => 'required|string|max:20',
-            'country' => 'required|string|max:50',
-            'phone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'manager_id' => 'nullable|exists:users,id',
-            'description' => 'nullable|string',
-            'latitude' => 'nullable|numeric|between:-90,90',
-            'longitude' => 'nullable|numeric|between:-180,180',
-        ]);
+        // Approval workflow
+        Route::post('/{branch}/approve', [BranchController::class, 'approve'])->name('approve');
+        Route::post('/{branch}/reject', [BranchController::class, 'reject'])->name('reject');
 
-        $operatingHours = [];
-        $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        // Bulk operations
+        Route::post('/bulk-action', [BranchController::class, 'bulkAction'])->name('bulk-action');
+    });
 
-        foreach ($days as $day) {
-            if ($request->input("{$day}_closed")) {
-                $operatingHours[$day] = ['closed' => true];
-            } else {
-                $operatingHours[$day] = [
-                    'open' => $request->input("{$day}_open", '09:00'),
-                    'close' => $request->input("{$day}_close", '17:00'),
-                ];
-            }
-        }
+    // ========================================================================
+    // ACCOUNT MANAGEMENT
+    // ========================================================================
+    Route::prefix('accounts')->name('accounts.')->group(function () {
+        Route::get('/', [AccountController::class, 'index'])->name('index');
+        Route::get('/create', [AccountController::class, 'create'])->name('create');
+        Route::post('/', [AccountController::class, 'store'])->name('store');
+        Route::get('/{account}', [AccountController::class, 'show'])->name('show');
+        Route::get('/{account}/edit', [AccountController::class, 'edit'])->name('edit');
+        Route::put('/{account}', [AccountController::class, 'update'])->name('update');
+        Route::delete('/{account}', [AccountController::class, 'destroy'])->name('destroy');
 
-        \App\Models\Branch::create([
-            'name' => $request->name,
-            'code' => $request->code,
-            'address' => $request->address,
-            'city' => $request->city,
-            'state' => $request->state,
-            'postal_code' => $request->postal_code,
-            'country' => $request->country,
-            'phone' => $request->phone,
-            'email' => $request->email,
-            'manager_id' => $request->manager_id,
-            'description' => $request->description,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'operating_hours' => $operatingHours,
-            'is_active' => true,
-        ]);
+        // Status management
+        Route::post('/{account}/toggle-status', [AccountController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('/{account}/submit-for-approval', [AccountController::class, 'submitForApproval'])->name('submit-for-approval');
+        Route::post('/{account}/approve', [AccountController::class, 'approve'])->name('approve');
+        Route::post('/{account}/reject', [AccountController::class, 'reject'])->name('reject');
 
-        return redirect()->back()->with('success', 'Branch created successfully.');
-    })->name('admin.branches.store');
+        // Collaterals
+        Route::get('/{account}/collaterals', [AccountController::class, 'collaterals'])->name('collaterals');
+    });
 
-    Route::put('/admin/branches/{branch}', function (\App\Models\Branch $branch, \Illuminate\Http\Request $request) {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'code' => 'required|string|max:10|unique:branches,code,' . $branch->id,
-            'address' => 'required|string',
-            'city' => 'required|string|max:100',
-            'state' => 'required|string|max:50',
-            'postal_code' => 'required|string|max:20',
-            'country' => 'required|string|max:50',
-            'phone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'manager_id' => 'nullable|exists:users,id',
-            'description' => 'nullable|string',
-            'latitude' => 'nullable|numeric|between:-90,90',
-            'longitude' => 'nullable|numeric|between:-180,180',
-        ]);
+    // ========================================================================
+    // COLLATERAL MANAGEMENT
+    // ========================================================================
+    Route::prefix('collaterals')->name('collaterals.')->group(function () {
+        Route::get('/', [CollateralController::class, 'index'])->name('index');
+        Route::post('/', [CollateralController::class, 'store'])->name('store');
+        Route::put('/{collateral}', [CollateralController::class, 'update'])->name('update');
+        Route::post('/{collateral}/approve', [CollateralController::class, 'approve'])->name('approve');
+        Route::post('/{collateral}/reject', [CollateralController::class, 'reject'])->name('reject');
+        Route::post('/{collateral}/start-auction', [CollateralController::class, 'startAuction'])->name('start-auction');
+        Route::post('/{collateral}/end-auction', [CollateralController::class, 'endAuction'])->name('end-auction');
+        Route::delete('/{collateral}', [CollateralController::class, 'destroy'])->name('destroy');
+    });
 
-        $operatingHours = [];
-        $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    // ========================================================================
+    // AUCTION MANAGEMENT
+    // ========================================================================
+    Route::prefix('auctions')->name('auctions.')->group(function () {
+        Route::get('/', [AuctionController::class, 'index'])->name('index');
+        Route::get('/{auction}', [AuctionController::class, 'show'])->name('show');
+        Route::get('/results/all', [AuctionController::class, 'results'])->name('results');
+        Route::get('/{auction}/live-data', [AuctionController::class, 'liveData'])->name('live-data');
+        Route::post('/{auction}/extend', [AuctionController::class, 'extendAuction'])->name('extend');
+        Route::post('/{auction}/cancel', [AuctionController::class, 'cancelAuction'])->name('cancel');
+        Route::post('/{auction}/restart', [AuctionController::class, 'restartAuction'])->name('restart');
+        Route::post('/results/{auctionResult}/payment-status', [AuctionController::class, 'updatePaymentStatus'])->name('update-payment-status');
+        Route::post('/results/{auctionResult}/delivery-status', [AuctionController::class, 'updateDeliveryStatus'])->name('update-delivery-status');
+    });
 
-        foreach ($days as $day) {
-            if ($request->input("{$day}_closed")) {
-                $operatingHours[$day] = ['closed' => true];
-            } else {
-                $operatingHours[$day] = [
-                    'open' => $request->input("{$day}_open", '09:00'),
-                    'close' => $request->input("{$day}_close", '17:00'),
-                ];
-            }
-        }
 
-        $branch->update([
-            'name' => $request->name,
-            'code' => $request->code,
-            'address' => $request->address,
-            'city' => $request->city,
-            'state' => $request->state,
-            'postal_code' => $request->postal_code,
-            'country' => $request->country,
-            'phone' => $request->phone,
-            'email' => $request->email,
-            'manager_id' => $request->manager_id,
-            'description' => $request->description,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'operating_hours' => $operatingHours,
-        ]);
-
-        return redirect()->back()->with('success', 'Branch updated successfully.');
-    })->name('admin.branches.update');
-
-    Route::post('/admin/branches/{branch}/toggle-status', function (\App\Models\Branch $branch) {
-        $branch->update(['is_active' => !$branch->is_active]);
-
-        $status = $branch->is_active ? 'activated' : 'deactivated';
-        return redirect()->back()->with('success', "Branch {$branch->name} has been {$status}.");
-    })->name('admin.branches.toggle-status');
-
-    Route::delete('/admin/branches/{branch}', function (\App\Models\Branch $branch) {
-        $branchName = $branch->name;
-        $branch->delete();
-
-        return redirect()->back()->with('success', "Branch {$branchName} has been deleted.");
-    })->name('admin.branches.delete');
 });
 
-// Authentication Routes
+// ============================================================================
+// AUTHENTICATION ROUTES (Guest Only)
+// ============================================================================
+
 Route::middleware('guest')->group(function () {
+    // Login Routes
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
+
+    // Registration Routes
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register']);
 
@@ -244,63 +169,22 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
 
+// Logout Route (Authenticated Users Only)
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');
 
-// Protected Routes
+// ============================================================================
+// USER ROUTES (Authenticated Users)
+// ============================================================================
+
 Route::middleware('auth')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
 
-    // Profile routes
-    Route::get('/profile', function () {
-        return view('profile.edit');
-    })->name('profile.edit');
+    // User Dashboard
+    Route::get('/dashboard', [PublicController::class, 'dashboard'])->name('dashboard');
 
-    Route::put('/profile', function (\Illuminate\Http\Request $request) {
-        $user = Auth::user();
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'current_password' => 'nullable|current_password',
-            'password' => 'nullable|min:8|confirmed',
-        ]);
-
-        // Update basic info
-        $user->update([
-            'name' => $request->name,
-            'email' => $request->email,
-        ]);
-
-        // Update password if provided
-        if ($request->filled('password')) {
-            $user->update([
-                'password' => Hash::make($request->password),
-            ]);
-        }
-
-        return redirect()->back()->with('success', 'Profile updated successfully.');
-    })->name('profile.update');
-
-    Route::delete('/profile', function (\Illuminate\Http\Request $request) {
-        $user = Auth::user();
-
-        $request->validate([
-            'password' => 'required|current_password',
-        ]);
-
-        // Prevent admin from deleting their own account if they're the only admin
-        if ($user->isAdmin()) {
-            $adminCount = \App\Models\User::where('is_admin', true)->count();
-            if ($adminCount <= 1) {
-                return redirect()->back()->with('error', 'Cannot delete account. You are the only administrator.');
-            }
-        }
-
-        Auth::logout();
-        $user->delete();
-
-        return redirect('/')->with('success', 'Account deleted successfully.');
-    })->name('profile.destroy');
+    // User Profile Management
+    Route::prefix('profile')->name('profile.')->group(function () {
+        Route::get('/', [UserController::class, 'editProfile'])->name('edit');
+        Route::put('/', [UserController::class, 'updateProfile'])->name('update');
+        Route::delete('/', [UserController::class, 'deleteAccount'])->name('destroy');
+    });
 });
