@@ -13,6 +13,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\TwoFactorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,15 +40,6 @@ Route::get('/about', [PublicController::class, 'about'])->name('about');
 // Public Auctions
 Route::get('/auctions', [PublicController::class, 'auctions'])->name('auctions.index');
 Route::get('/auctions/{collateral}', [PublicController::class, 'auctionDetails'])->name('auctions.show');
-
-// Development/Testing Routes
-Route::get('/test-password-reset', function () {
-    return view('test-password-reset');
-})->name('test.password.reset');
-
-Route::get('/color-test', function () {
-    return view('color-test');
-})->name('color-test');
 
 // ============================================================================
 // ADMIN ROUTES (Admin Users Only)
@@ -202,6 +194,15 @@ Route::middleware('guest')->group(function () {
     Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
     Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
     Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
+
+});
+
+// Two-Factor Authentication Routes (With custom 2FA guest middleware)
+Route::middleware('2fa.guest')->group(function () {
+    Route::get('/2fa/verify', [TwoFactorController::class, 'show'])->name('2fa.show');
+    Route::post('/2fa/verify', [TwoFactorController::class, 'verify'])->name('2fa.verify');
+    Route::post('/2fa/resend', [TwoFactorController::class, 'resend'])->name('2fa.resend');
+    Route::get('/2fa/cancel', [TwoFactorController::class, 'cancel'])->name('2fa.cancel');
 });
 
 // Logout Route (Authenticated Users Only)

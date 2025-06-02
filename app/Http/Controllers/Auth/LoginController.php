@@ -3,12 +3,22 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Services\TwoFactorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
+    protected TwoFactorService $twoFactorService;
+
+    public function __construct(TwoFactorService $twoFactorService)
+    {
+        $this->twoFactorService = $twoFactorService;
+    }
+
     /**
      * Show the application's login form.
      */
@@ -30,10 +40,43 @@ class LoginController extends Controller
         $credentials = $request->only('email', 'password');
         $remember = $request->boolean('remember');
 
-        if (Auth::attempt($credentials, $remember)) {
+        // Attempt to authenticate user without logging them in
+        if (Auth::validate($credentials)) {
+            // Make sure user is not logged in yet
+            Auth::logout();
+
+            $user = User::where('email', $request->email)->first();
+
+            // Check if user is active
+            if ($user->status !== 'active') {
+                throw ValidationException::withMessages([
+                    'email' => 'Your account is not active. Please contact support.',
+                ]);
+            }
+
+            // Check if 2FA is enabled
+            if ($this->twoFactorService->isEnabled()) {
+                // Store user ID and remember preference in session for 2FA
+                Session::put('2fa_user_id', $user->id);
+                Session::put('2fa_remember', $remember);
+
+                // Generate and send 2FA code
+                if ($this->twoFactorService->generateAndSendCode($user)) {
+                    return redirect()->route('2fa.show')
+                        ->with('success', 'A verification code has been sent to your email.');
+                } else {
+                    return back()->with('error', 'Failed to send verification code. Please try again.');
+                }
+            }
+
+            // If 2FA is disabled, log in normally
+            Auth::login($user, $remember);
             $request->session()->regenerate();
 
-            return redirect()->intended('/dashboard');
+            // Update last login time
+            $user->update(['last_login_at' => now()]);
+
+            return redirect()->intended($user->is_admin ? '/admin/dashboard' : '/dashboard');
         }
 
         throw ValidationException::withMessages([
