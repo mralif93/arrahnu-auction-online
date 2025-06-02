@@ -23,17 +23,7 @@ return new class extends Migration
             $table->decimal('starting_bid_rm', 10, 2)->default(0.00);
             $table->decimal('current_highest_bid_rm', 10, 2)->default(0.00);
             $table->uuid('highest_bidder_user_id')->nullable();
-            $table->enum('status', [
-                'draft', 
-                'pending_approval', 
-                'active', 
-                'ready_for_auction', 
-                'auctioning', 
-                'sold', 
-                'unsold', 
-                'returned', 
-                'rejected'
-            ])->default('draft');
+            $table->enum('status', ['draft', 'pending_approval', 'active', 'inactive', 'rejected'])->default('draft');
             $table->uuid('created_by_user_id')->nullable();
             $table->uuid('approved_by_user_id')->nullable();
             $table->timestampsTz();
@@ -48,6 +38,9 @@ return new class extends Migration
             // Performance indexes
             $table->index('account_id', 'idx_collaterals_account_id');
             $table->index('auction_id', 'idx_collaterals_auction_id');
+            $table->index('status', 'idx_collaterals_status');
+            $table->index('highest_bidder_user_id', 'idx_collaterals_highest_bidder');
+            $table->index('created_by_user_id', 'idx_collaterals_created_by');
         });
     }
 

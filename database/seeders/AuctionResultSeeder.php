@@ -15,16 +15,20 @@ class AuctionResultSeeder extends Seeder
      */
     public function run(): void
     {
-        // Get sold collaterals that don't have auction results yet
-        $soldCollaterals = Collateral::where('status', Collateral::STATUS_SOLD)
-                                    ->whereNotNull('highest_bidder_user_id')
+        // Get active collaterals from completed auctions that don't have auction results yet
+        $completedAuctionCollaterals = Collateral::with('auction')
+                                    ->where('status', Collateral::STATUS_ACTIVE)
+                                    ->whereHas('auction', function($query) {
+                                        $query->where('status', 'completed');
+                                    })
                                     ->whereNotNull('current_highest_bid_rm')
+                                    ->where('current_highest_bid_rm', '>', 0)
                                     ->whereDoesntHave('auctionResult')
                                     ->get();
 
         $bidders = User::where('role', User::ROLE_BIDDER)->get();
 
-        foreach ($soldCollaterals as $collateral) {
+        foreach ($completedAuctionCollaterals as $collateral) {
             $paymentStatus = rand(1, 100) <= 80 ? AuctionResult::PAYMENT_PAID : 
                            (rand(1, 100) <= 70 ? AuctionResult::PAYMENT_PENDING : AuctionResult::PAYMENT_CANCELLED);
             
@@ -50,14 +54,18 @@ class AuctionResultSeeder extends Seeder
             ]);
         }
 
-        // Create some auction results for collaterals that were sold but don't have highest bidder set
-        $additionalSoldCollaterals = Collateral::where('status', Collateral::STATUS_SOLD)
+        // Create some auction results for additional collaterals from completed auctions
+        $additionalCompletedCollaterals = Collateral::with('auction')
+                                               ->where('status', Collateral::STATUS_ACTIVE)
+                                               ->whereHas('auction', function($query) {
+                                                   $query->where('status', 'completed');
+                                               })
                                                ->whereNull('highest_bidder_user_id')
                                                ->whereDoesntHave('auctionResult')
                                                ->take(5)
                                                ->get();
 
-        foreach ($additionalSoldCollaterals as $collateral) {
+        foreach ($additionalCompletedCollaterals as $collateral) {
             $winner = $bidders->random();
             $winningAmount = $collateral->starting_bid_rm + rand(100, 1000);
             

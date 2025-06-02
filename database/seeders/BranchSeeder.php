@@ -70,15 +70,31 @@ class BranchSeeder extends Seeder
         ];
 
         foreach ($branches as $branchData) {
-            Branch::create([
+            // Create branch address first
+            $branchAddress = \App\Models\BranchAddress::create([
+                'id' => Str::uuid(),
+                'branch_id' => null, // Will be set after branch creation
+                'address_line_1' => $branchData['address'],
+                'address_line_2' => null,
+                'city' => 'Kuala Lumpur', // Default city
+                'state' => 'Selangor', // Default state
+                'postcode' => '50000', // Default postcode
+                'country' => 'Malaysia',
+            ]);
+
+            // Create branch
+            $branch = Branch::create([
                 'id' => Str::uuid(),
                 'name' => $branchData['name'],
-                'address' => $branchData['address'],
+                'branch_address_id' => $branchAddress->id,
                 'phone_number' => $branchData['phone_number'],
                 'status' => $branchData['status'],
                 'created_by_user_id' => $maker->id,
                 'approved_by_user_id' => $branchData['status'] === Branch::STATUS_ACTIVE ? $checker->id : null,
             ]);
+
+            // Update branch address with branch_id
+            $branchAddress->update(['branch_id' => $branch->id]);
         }
 
         $this->command->info('Created 8 branches: 5 active, 2 pending approval, 1 draft');

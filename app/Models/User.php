@@ -70,6 +70,32 @@ class User extends Authenticatable
     ];
 
     /**
+     * Get all available roles.
+     */
+    public static function getRoles(): array
+    {
+        return [
+            self::ROLE_MAKER => 'Maker',
+            self::ROLE_CHECKER => 'Checker',
+            self::ROLE_BIDDER => 'Bidder',
+        ];
+    }
+
+    /**
+     * Get all available statuses.
+     */
+    public static function getStatuses(): array
+    {
+        return [
+            self::STATUS_DRAFT => 'Draft',
+            self::STATUS_PENDING_APPROVAL => 'Pending Approval',
+            self::STATUS_ACTIVE => 'Active',
+            self::STATUS_INACTIVE => 'Inactive',
+            self::STATUS_REJECTED => 'Rejected',
+        ];
+    }
+
+    /**
      * The attributes that should be hidden for serialization.
      *
      * @var list<string>
@@ -258,6 +284,8 @@ class User extends Authenticatable
     {
         return $this->belongsTo(User::class, 'approved_by_user_id');
     }
+
+
 
     /**
      * Get the users created by this user.

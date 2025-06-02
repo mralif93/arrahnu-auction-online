@@ -28,6 +28,8 @@ return new class extends Migration
 
             // Performance indexes
             $table->index('branch_id', 'idx_accounts_branch_id');
+            $table->index('status', 'idx_accounts_status');
+            $table->index('created_by_user_id', 'idx_accounts_created_by');
         });
     }
 

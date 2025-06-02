@@ -71,19 +71,19 @@
                 <!-- Stats Bar -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     <div class="bg-white dark:bg-[#161615] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] rounded-lg p-4 text-center">
-                        <div class="text-2xl font-bold text-brand mb-1">127</div>
+                        <div class="text-2xl font-bold text-brand mb-1">{{ $liveAuctionsCount }}</div>
                         <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">Live Auctions</div>
                     </div>
                     <div class="bg-white dark:bg-[#161615] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] rounded-lg p-4 text-center">
-                        <div class="text-2xl font-bold text-brand mb-1">2,847</div>
+                        <div class="text-2xl font-bold text-brand mb-1">{{ number_format($activeBiddersCount) }}</div>
                         <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">Active Bidders</div>
                     </div>
                     <div class="bg-white dark:bg-[#161615] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] rounded-lg p-4 text-center">
-                        <div class="text-2xl font-bold text-brand mb-1">$1.2M</div>
+                        <div class="text-2xl font-bold text-brand mb-1">RM {{ number_format($totalValue / 1000, 1) }}K</div>
                         <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">Total Value</div>
                     </div>
                     <div class="bg-white dark:bg-[#161615] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] rounded-lg p-4 text-center">
-                        <div class="text-2xl font-bold text-brand mb-1">24</div>
+                        <div class="text-2xl font-bold text-brand mb-1">{{ $endingTodayCount }}</div>
                         <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">Ending Today</div>
                     </div>
                 </div>

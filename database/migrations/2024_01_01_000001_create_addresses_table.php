@@ -23,18 +23,16 @@ return new class extends Migration
             $table->boolean('is_primary')->default(false);
             $table->timestampsTz();
 
-            // Foreign keys
+            // Foreign key
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
             // Performance indexes
             $table->index('user_id', 'idx_addresses_user_id');
         });
 
-        // Add foreign key constraint for primary_address_id in users table
+        // Add foreign key to users.primary_address_id after addresses table is created
         Schema::table('users', function (Blueprint $table) {
             $table->foreign('primary_address_id')->references('id')->on('addresses')->onDelete('set null');
-            $table->foreign('created_by_user_id')->references('id')->on('users')->onDelete('set null');
-            $table->foreign('approved_by_user_id')->references('id')->on('users')->onDelete('set null');
         });
     }
 
@@ -43,11 +41,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Drop foreign key constraints from users table first
+        // Drop foreign key from users table first
         Schema::table('users', function (Blueprint $table) {
             $table->dropForeign(['primary_address_id']);
-            $table->dropForeign(['created_by_user_id']);
-            $table->dropForeign(['approved_by_user_id']);
         });
 
         Schema::dropIfExists('addresses');

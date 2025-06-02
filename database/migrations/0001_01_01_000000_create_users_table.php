@@ -52,12 +52,20 @@ return new class extends Migration
         });
 
         Schema::create('sessions', function (Blueprint $table) {
-            $table->string('id')->primary();
-            $table->foreignId('user_id')->nullable()->index();
+            $table->uuid('id')->primary();
+            $table->uuid('user_id');
+            $table->string('session_token', 255)->unique();
+            $table->timestampTz('expires_at');
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
-            $table->longText('payload');
-            $table->integer('last_activity')->index();
+            $table->timestampsTz();
+
+            // Foreign key
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+
+            // Performance indexes
+            $table->index('user_id', 'idx_sessions_user_id');
+            $table->index('expires_at', 'idx_sessions_expires_at');
         });
     }
 

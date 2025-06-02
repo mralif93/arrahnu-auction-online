@@ -38,9 +38,8 @@ class Branch extends Model
      */
     protected $fillable = [
         'name',
-        'address',
+        'branch_address_id',
         'phone_number',
-        'description',
         'status',
         'created_by_user_id',
         'approved_by_user_id',
@@ -90,6 +89,22 @@ class Branch extends Model
     public function approvedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'approved_by_user_id');
+    }
+
+    /**
+     * Get the address for this branch.
+     */
+    public function branchAddress(): BelongsTo
+    {
+        return $this->belongsTo(BranchAddress::class, 'branch_address_id');
+    }
+
+    /**
+     * Get the address for this branch (alias).
+     */
+    public function address(): BelongsTo
+    {
+        return $this->belongsTo(BranchAddress::class, 'branch_address_id');
     }
 
     /**

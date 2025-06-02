@@ -1,0 +1,635 @@
+@extends('layouts.admin')
+
+@section('title', 'Edit Collateral - ' . $collateral->item_type)
+
+@section('content')
+    <div class="space-y-6">
+        <!-- Breadcrumb Navigation -->
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center text-sm font-medium text-[#706f6c] hover:text-[#1b1b18] dark:text-[#A1A09A] dark:hover:text-[#EDEDEC]">
+                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                        </svg>
+                        Dashboard
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 text-[#706f6c]" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <a href="{{ route('admin.collaterals.index') }}" class="ml-1 text-sm font-medium text-[#706f6c] hover:text-[#1b1b18] dark:text-[#A1A09A] dark:hover:text-[#EDEDEC] md:ml-2">Collaterals</a>
+                    </div>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 text-[#706f6c]" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <a href="{{ route('admin.collaterals.show', $collateral) }}" class="ml-1 text-sm font-medium text-[#706f6c] hover:text-[#1b1b18] dark:text-[#A1A09A] dark:hover:text-[#EDEDEC] md:ml-2">{{ Str::limit($collateral->item_type, 30) }}</a>
+                    </div>
+                </li>
+                <li aria-current="page">
+                    <div class="flex items-center">
+                        <svg class="w-6 h-6 text-[#706f6c]" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="ml-1 text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC] md:ml-2">Edit</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Header with Actions -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-[#1b1b18] dark:text-[#EDEDEC]">Edit Collateral</h1>
+                <div class="flex items-center space-x-3 mt-2">
+                    <p class="text-[#706f6c] dark:text-[#A1A09A]">{{ $collateral->item_type }}</p>
+                    <span class="text-[#706f6c] dark:text-[#A1A09A]">•</span>
+                    <p class="text-[#706f6c] dark:text-[#A1A09A]">{{ $collateral->account->account_title ?? 'No account' }}</p>
+                    <span class="text-[#706f6c] dark:text-[#A1A09A]">•</span>
+                    <p class="text-[#706f6c] dark:text-[#A1A09A]">ID: {{ Str::limit($collateral->id, 8) }}</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="{{ route('admin.collaterals.show', $collateral) }}"
+                   class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    View Collateral
+                </a>
+                <a href="{{ route('admin.collaterals.index') }}"
+                   class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Back to Collaterals
+                </a>
+            </div>
+        </div>
+
+        <!-- Collateral Profile Overview -->
+        <div class="bg-white dark:bg-[#161615] rounded-xl border border-[#e3e3e0] dark:border-[#3E3E3A] overflow-hidden">
+            <!-- Profile Header -->
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 px-6 py-8">
+                <div class="grid grid-cols-12 gap-8">
+                    <!-- Avatar -->
+                    <div class="col-span-2">
+                        <div class="w-24 h-24 bg-white dark:bg-[#161615] rounded-xl shadow-lg flex items-center justify-center border-4 border-white dark:border-[#3E3E3A]">
+                            @if($collateral->images->where('is_thumbnail', true)->first())
+                                <img src="{{ $collateral->images->where('is_thumbnail', true)->first()->image_url }}"
+                                     alt="Collateral Thumbnail"
+                                     class="w-full h-full object-cover rounded-lg">
+                            @else
+                                <span class="text-blue-600 dark:text-blue-400 font-bold text-3xl">
+                                    {{ strtoupper(substr($collateral->item_type, 0, 2)) }}
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Collateral Info -->
+                    <div class="col-span-10">
+                        <div class="flex items-center space-x-3 mb-3">
+                            <h2 class="text-2xl font-bold text-[#1b1b18] dark:text-[#EDEDEC]">
+                                {{ $collateral->item_type }}
+                            </h2>
+
+                            <!-- Status Badge -->
+                            @if($collateral->status === 'active')
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Active
+                                </span>
+                            @elseif($collateral->status === 'pending_approval')
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Pending Approval
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v11a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm0 2h12v11H4V4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    {{ ucfirst(str_replace('_', ' ', $collateral->status)) }}
+                                </span>
+                            @endif
+                        </div>
+
+                        <!-- Collateral Info -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-4 h-4 text-[#706f6c] dark:text-[#A1A09A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                                <span class="text-[#706f6c] dark:text-[#A1A09A]">{{ $collateral->account->account_title ?? 'No account' }}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-4 h-4 text-[#706f6c] dark:text-[#A1A09A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                </svg>
+                                <span class="text-[#706f6c] dark:text-[#A1A09A]">RM {{ number_format($collateral->starting_bid_rm, 2) }}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <svg class="w-4 h-4 text-[#706f6c] dark:text-[#A1A09A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                                <span class="text-[#706f6c] dark:text-[#A1A09A]">{{ $collateral->created_at->format('M j, Y') }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Form -->
+        @if($collateral->status !== 'active')
+        <form action="{{ route('admin.collaterals.update', $collateral) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+            @csrf
+            @method('PUT')
+
+            <!-- Basic Information Section -->
+            <div class="bg-white dark:bg-[#161615] rounded-xl border border-[#e3e3e0] dark:border-[#3E3E3A] overflow-hidden">
+                <div class="px-6 py-4 bg-gray-50 dark:bg-[#1a1a19] border-b border-[#e3e3e0] dark:border-[#3E3E3A]">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                        <h3 class="text-lg font-semibold text-[#1b1b18] dark:text-[#EDEDEC]">Basic Information</h3>
+                        <span class="text-sm text-red-500">* Required fields</span>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-6">
+                        <!-- Account and Auction Selection -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Account Selection -->
+                            <div>
+                                <label for="account_id" class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-2">
+                                    Account <span class="text-red-500">*</span>
+                                </label>
+                                <select id="account_id"
+                                        name="account_id"
+                                        class="w-full px-4 py-3 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded-lg bg-white dark:bg-[#161615] text-[#1b1b18] dark:text-[#EDEDEC] focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors @error('account_id') border-red-500 @enderror"
+                                        required>
+                                    <option value="">Select Account</option>
+                                    @foreach($accounts as $account)
+                                        <option value="{{ $account->id }}" {{ (old('account_id', $collateral->account_id) == $account->id) ? 'selected' : '' }}>
+                                            {{ $account->account_title }} - {{ $account->branch->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('account_id')
+                                    <p class="mt-2 text-sm text-red-600 flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                                <p class="mt-1 text-xs text-[#706f6c] dark:text-[#A1A09A]">
+                                    Select the account this collateral belongs to
+                                </p>
+                            </div>
+
+                            <!-- Auction Selection -->
+                            <div>
+                                <label for="auction_id" class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-2">
+                                    Auction <span class="text-red-500">*</span>
+                                </label>
+                                <select name="auction_id" id="auction_id" required
+                                        class="w-full px-4 py-3 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded-lg bg-white dark:bg-[#161615] text-[#1b1b18] dark:text-[#EDEDEC] focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors @error('auction_id') border-red-500 @enderror">
+                                    <option value="">Select Auction</option>
+                                    @foreach($auctions as $auction)
+                                        <option value="{{ $auction->id }}" {{ (old('auction_id', $collateral->auction_id) == $auction->id) ? 'selected' : '' }}>
+                                            {{ $auction->auction_title }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('auction_id')
+                                    <p class="mt-2 text-sm text-red-600 flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                                <p class="mt-1 text-xs text-[#706f6c] dark:text-[#A1A09A]">
+                                    Select the auction where this collateral will be listed
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Item Type -->
+                        <div>
+                            <label for="item_type" class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-2">
+                                Item Type <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="item_type" id="item_type" required maxlength="50"
+                                   value="{{ old('item_type', $collateral->item_type) }}"
+                                   class="w-full px-4 py-3 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded-lg bg-white dark:bg-[#161615] text-[#1b1b18] dark:text-[#EDEDEC] focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors @error('item_type') border-red-500 @enderror"
+                                   placeholder="Enter item type (e.g., Gold Ring, Diamond Necklace)">
+                            @error('item_type')
+                                <p class="mt-2 text-sm text-red-600 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                            <p class="mt-1 text-xs text-[#706f6c] dark:text-[#A1A09A]">
+                                Be specific about the type of collateral item
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Item Details Section -->
+            <div class="bg-white dark:bg-[#161615] rounded-xl border border-[#e3e3e0] dark:border-[#3E3E3A] overflow-hidden">
+                <div class="px-6 py-4 bg-gray-50 dark:bg-[#1a1a19] border-b border-[#e3e3e0] dark:border-[#3E3E3A]">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <h3 class="text-lg font-semibold text-[#1b1b18] dark:text-[#EDEDEC]">Item Details</h3>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-6">
+                        <!-- Weight and Purity -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Weight -->
+                            <div>
+                                <label for="weight_grams" class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-2">
+                                    Weight (grams)
+                                </label>
+                                <input type="number" name="weight_grams" id="weight_grams" step="0.01" min="0"
+                                       value="{{ old('weight_grams', $collateral->weight_grams) }}"
+                                       class="w-full px-4 py-3 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded-lg bg-white dark:bg-[#161615] text-[#1b1b18] dark:text-[#EDEDEC] focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors @error('weight_grams') border-red-500 @enderror"
+                                       placeholder="Enter weight in grams (e.g., 15.50)">
+                                @error('weight_grams')
+                                    <p class="mt-2 text-sm text-red-600 flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                                <p class="mt-1 text-xs text-[#706f6c] dark:text-[#A1A09A]">
+                                    Weight of the item in grams (optional)
+                                </p>
+                            </div>
+
+                            <!-- Purity -->
+                            <div>
+                                <label for="purity" class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-2">
+                                    Purity
+                                </label>
+                                <input type="text" name="purity" id="purity" maxlength="20"
+                                       value="{{ old('purity', $collateral->purity) }}"
+                                       class="w-full px-4 py-3 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded-lg bg-white dark:bg-[#161615] text-[#1b1b18] dark:text-[#EDEDEC] focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors @error('purity') border-red-500 @enderror"
+                                       placeholder="Enter purity (e.g., 18K, 22K, 999)">
+                                @error('purity')
+                                    <p class="mt-2 text-sm text-red-600 flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                                <p class="mt-1 text-xs text-[#706f6c] dark:text-[#A1A09A]">
+                                    Purity level of the material (optional)
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Estimated Value and Starting Bid -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Estimated Value -->
+                            <div>
+                                <label for="estimated_value_rm" class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-2">
+                                    Estimated Value (RM)
+                                </label>
+                                <input type="number" name="estimated_value_rm" id="estimated_value_rm" step="0.01" min="0"
+                                       value="{{ old('estimated_value_rm', $collateral->estimated_value_rm) }}"
+                                       class="w-full px-4 py-3 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded-lg bg-white dark:bg-[#161615] text-[#1b1b18] dark:text-[#EDEDEC] focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors @error('estimated_value_rm') border-red-500 @enderror"
+                                       placeholder="Enter estimated value in RM (e.g., 5000.00)">
+                                @error('estimated_value_rm')
+                                    <p class="mt-2 text-sm text-red-600 flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                                <p class="mt-1 text-xs text-[#706f6c] dark:text-[#A1A09A]">
+                                    Estimated market value in Malaysian Ringgit
+                                </p>
+                            </div>
+
+                            <!-- Starting Bid -->
+                            <div>
+                                <label for="starting_bid_rm" class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-2">
+                                    Starting Bid (RM) <span class="text-red-500">*</span>
+                                </label>
+                                <input type="number" name="starting_bid_rm" id="starting_bid_rm" step="0.01" min="1" required
+                                       value="{{ old('starting_bid_rm', $collateral->starting_bid_rm) }}"
+                                       class="w-full px-4 py-3 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded-lg bg-white dark:bg-[#161615] text-[#1b1b18] dark:text-[#EDEDEC] focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors @error('starting_bid_rm') border-red-500 @enderror"
+                                       placeholder="Enter starting bid amount (e.g., 1000.00)">
+                                @error('starting_bid_rm')
+                                    <p class="mt-2 text-sm text-red-600 flex items-center">
+                                        <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {{ $message }}
+                                    </p>
+                                @enderror
+                                <p class="mt-1 text-xs text-[#706f6c] dark:text-[#A1A09A]">
+                                    Minimum bid amount to start the auction
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div>
+                            <label for="description" class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-2">
+                                Description <span class="text-red-500">*</span>
+                            </label>
+                            <textarea name="description" id="description" rows="4" required maxlength="1000"
+                                      class="w-full px-4 py-3 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded-lg bg-white dark:bg-[#161615] text-[#1b1b18] dark:text-[#EDEDEC] focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors @error('description') border-red-500 @enderror"
+                                      placeholder="Enter detailed description of the collateral item">{{ old('description', $collateral->description) }}</textarea>
+                            @error('description')
+                                <p class="mt-2 text-sm text-red-600 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                            <p class="mt-1 text-xs text-[#706f6c] dark:text-[#A1A09A]">
+                                Provide detailed description including condition and special features
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Images Section -->
+            <div class="bg-white dark:bg-[#161615] rounded-xl border border-[#e3e3e0] dark:border-[#3E3E3A] overflow-hidden">
+                <div class="px-6 py-4 bg-gray-50 dark:bg-[#1a1a19] border-b border-[#e3e3e0] dark:border-[#3E3E3A]">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        <h3 class="text-lg font-semibold text-[#1b1b18] dark:text-[#EDEDEC]">Images</h3>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-6">
+                        <!-- Current Images -->
+                        @if($collateral->images->count() > 0)
+                            <div>
+                                <label class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-2">Current Images</label>
+                                <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+                                    @foreach($collateral->images as $image)
+                                        <div class="relative group">
+                                            <img src="{{ $image->image_url }}" alt="Collateral Image"
+                                                 class="w-full h-24 object-cover rounded-lg border-2 {{ $image->is_thumbnail ? 'border-purple-500' : 'border-gray-200 dark:border-gray-700' }} hover:border-purple-400 transition-colors cursor-pointer">
+                                            @if($image->is_thumbnail)
+                                                <span class="absolute top-1 left-1 bg-purple-600 text-white text-xs px-2 py-1 rounded-md font-medium">
+                                                    Main
+                                                </span>
+                                            @endif
+                                            <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all"></div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <p class="text-xs text-[#706f6c] dark:text-[#A1A09A]">
+                                    Click on images to view larger version. The "Main" image is used as the thumbnail.
+                                </p>
+                            </div>
+                        @endif
+
+                        <!-- New Images -->
+                        <div>
+                            <label for="images" class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-2">
+                                Add New Images (Max 5 total)
+                            </label>
+                            <input type="file" name="images[]" id="images" multiple accept="image/*"
+                                   class="w-full px-4 py-3 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded-lg bg-white dark:bg-[#161615] text-[#1b1b18] dark:text-[#EDEDEC] focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors @error('images') border-red-500 @enderror">
+                            @error('images')
+                                <p class="mt-2 text-sm text-red-600 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                            <p class="mt-1 text-xs text-[#706f6c] dark:text-[#A1A09A]">
+                                Upload additional images (JPEG, PNG, JPG, GIF). Maximum 2MB each. Clear photos from multiple angles are recommended.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status & Information Section -->
+            <div class="bg-white dark:bg-[#161615] rounded-xl border border-[#e3e3e0] dark:border-[#3E3E3A] overflow-hidden">
+                <div class="px-6 py-4 bg-gray-50 dark:bg-[#1a1a19] border-b border-[#e3e3e0] dark:border-[#3E3E3A]">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <h3 class="text-lg font-semibold text-[#1b1b18] dark:text-[#EDEDEC]">Status & Information</h3>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-6">
+                        <!-- Current Status -->
+                        <div>
+                            <label class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-2">Current Status</label>
+                            <div class="flex items-center space-x-3">
+                                @if($collateral->status === 'active')
+                                    <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800">
+                                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        Active
+                                    </span>
+                                @elseif($collateral->status === 'pending_approval')
+                                    <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-800">
+                                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        Pending Approval
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-800">
+                                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v11a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm0 2h12v11H4V4z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        {{ ucfirst(str_replace('_', ' ', $collateral->status)) }}
+                                    </span>
+                                @endif
+                            </div>
+                            <p class="text-xs text-[#706f6c] dark:text-[#A1A09A] mt-2">Status cannot be changed during editing</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="bg-white dark:bg-[#161615] rounded-xl border border-[#e3e3e0] dark:border-[#3E3E3A] overflow-hidden">
+                <div class="px-6 py-4 bg-gray-50 dark:bg-[#1a1a19] border-b border-[#e3e3e0] dark:border-[#3E3E3A]">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <h3 class="text-lg font-semibold text-[#1b1b18] dark:text-[#EDEDEC]">Review & Update</h3>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <!-- Guidelines -->
+                    <div class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <div class="flex items-start space-x-3">
+                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div>
+                                <h5 class="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">Before Updating Collateral</h5>
+                                <ul class="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+                                    <li>• Ensure all required fields are filled correctly</li>
+                                    <li>• Select the appropriate account and auction</li>
+                                    <li>• Be specific about the item type and description</li>
+                                    <li>• Review all changes before submitting</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">
+                            <span class="text-red-500">*</span> Required fields must be completed
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <a href="{{ route('admin.collaterals.show', $collateral) }}"
+                               class="inline-flex items-center px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                Cancel
+                            </a>
+                            <button type="submit"
+                                    class="inline-flex items-center px-6 py-2 text-white text-sm font-medium rounded-lg border-0 cursor-pointer"
+                                    style="background-color: #FE5000; position: relative; z-index: 10;"
+                                    onmouseover="this.style.backgroundColor='#E5470A'"
+                                    onmouseout="this.style.backgroundColor='#FE5000'">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                                </svg>
+                                Update Collateral
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    @else
+        <!-- Read-only view for active collaterals -->
+        <div class="bg-white dark:bg-[#161615] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] rounded-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-[#e3e3e0] dark:border-[#3E3E3A]">
+                <h3 class="text-lg font-semibold text-[#1b1b18] dark:text-[#EDEDEC]">Collateral Information (Read-Only)</h3>
+                <p class="text-sm text-[#706f6c] dark:text-[#A1A09A]">This collateral is active and cannot be edited</p>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-1">Item Type</label>
+                        <p class="text-[#1b1b18] dark:text-[#EDEDEC]">{{ $collateral->item_type }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-1">Weight</label>
+                        <p class="text-[#1b1b18] dark:text-[#EDEDEC]">
+                            {{ $collateral->weight_grams ? number_format($collateral->weight_grams, 2) . ' grams' : 'Not specified' }}
+                        </p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-1">Purity</label>
+                        <p class="text-[#1b1b18] dark:text-[#EDEDEC]">{{ $collateral->purity ?: 'Not specified' }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-1">Starting Bid</label>
+                        <p class="text-[#1b1b18] dark:text-[#EDEDEC]">RM {{ number_format($collateral->starting_bid_rm, 2) }}</p>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <label class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-1">Description</label>
+                    <p class="text-[#1b1b18] dark:text-[#EDEDEC]">{{ $collateral->description }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Collateral Information -->
+        <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-blue-800 dark:text-blue-200">
+                        Collateral Information
+                    </h3>
+                    <div class="mt-2 text-sm text-blue-700 dark:text-blue-300">
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><strong>Created:</strong> {{ $collateral->created_at->format('M d, Y \a\t H:i') }}</li>
+                            <li><strong>Created By:</strong> {{ $collateral->creator ? $collateral->creator->full_name : 'System' }}</li>
+                            @if($collateral->approvedBy)
+                                <li><strong>Approved By:</strong> {{ $collateral->approvedBy->full_name }}</li>
+                            @endif
+                            <li><strong>Last Updated:</strong> {{ $collateral->updated_at->format('M d, Y \a\t H:i') }}</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+    </div>
+
+@endsection
+
+@push('scripts')
+<script>
+    // File input validation
+    document.getElementById('images').addEventListener('change', function(event) {
+        const files = event.target.files;
+        const currentImages = {{ $collateral->images->count() }};
+        
+        if (files.length + currentImages > 5) {
+            alert('You can only have a maximum of 5 images total.');
+            event.target.value = '';
+            return;
+        }
+        
+        for (let file of files) {
+            if (file.size > 2 * 1024 * 1024) { // 2MB
+                alert(`File ${file.name} is too large. Maximum size is 2MB.`);
+                event.target.value = '';
+                return;
+            }
+        }
+    });
+</script>
+@endpush

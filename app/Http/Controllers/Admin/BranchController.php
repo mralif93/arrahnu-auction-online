@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
 use App\Models\Branch;
+use App\Models\BranchAddress;
 use App\Models\User;
+use App\Services\ValidationService;
 use Illuminate\Http\Request;
 
-class BranchController extends Controller
+class BranchController extends BaseAdminController
 {
+    protected string $modelClass = Branch::class;
+    protected string $routePrefix = 'admin.branches';
+    protected string $entityName = 'Branch';
+
     /**
      * Create a new controller instance.
      */
@@ -22,24 +27,20 @@ class BranchController extends Controller
      */
     public function index()
     {
-        $branches = Branch::with(['creator', 'approvedBy', 'accounts'])
+        // Calculate statistics from all branches
+        $statistics = [
+            'total' => Branch::count(),
+            'active' => Branch::where('status', 'active')->count(),
+            'pending' => Branch::where('status', 'pending_approval')->count(),
+            'locations' => Branch::where('status', 'active')->count(),
+        ];
+
+        // Get paginated branches
+        $branches = Branch::with(['creator', 'approvedBy', 'branchAddress', 'accounts.collaterals'])
                          ->orderBy('created_at', 'desc')
-                         ->get();
+                         ->paginate(15);
 
-        $totalBranches = $branches->count();
-        $activeBranches = $branches->where('status', 'active')->count();
-        $pendingBranches = $branches->where('status', 'pending_approval')->count();
-        $inactiveBranches = $branches->where('status', 'inactive')->count();
-        $rejectedBranches = $branches->where('status', 'rejected')->count();
-
-        return view('admin.branches', compact(
-            'branches',
-            'totalBranches',
-            'activeBranches',
-            'pendingBranches',
-            'inactiveBranches',
-            'rejectedBranches'
-        ));
+        return view('admin.branches.index', compact('branches', 'statistics'));
     }
 
     /**
@@ -84,40 +85,40 @@ class BranchController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:100|unique:branches,name',
-            'address' => 'required|string|max:500',
-            'phone_number' => 'nullable|string|max:20',
-            'description' => 'nullable|string|max:1000',
-            'submit_action' => 'required|in:draft,submit_for_approval'
-        ], [
-            'name.unique' => 'A branch with this name already exists.',
-        ]);
+        return $this->handleAction(function () use ($request) {
+            $validationRules = ValidationService::getBranchRules();
+            $request->validate($validationRules, ValidationService::getCustomMessages());
 
-        $status = $request->submit_action === 'submit_for_approval' ? 'pending_approval' : 'draft';
-
-        $branch = Branch::create([
-            'name' => $request->name,
-            'address' => $request->address,
-            'phone_number' => $request->phone_number,
-            'description' => $request->description,
-            'status' => $status,
-            'created_by_user_id' => auth()->id(),
-        ]);
-
-        $message = $status === 'pending_approval'
-            ? 'Branch created and submitted for approval successfully.'
-            : 'Branch created as draft successfully.';
-
-        if ($request->expectsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-                'branch' => $branch->load(['creator', 'approvedBy'])
+            // Create branch address first
+            $branchAddress = BranchAddress::create([
+                'address_line_1' => $request->address_line_1,
+                'address_line_2' => $request->address_line_2,
+                'city' => $request->city,
+                'state' => $request->state,
+                'postcode' => $request->postcode,
+                'country' => $request->country,
             ]);
-        }
 
-        return redirect()->route('admin.branches.index')->with('success', $message);
+            // Create branch with address reference
+            $branch = Branch::create([
+                'name' => $request->name,
+                'branch_address_id' => $branchAddress->id,
+                'phone_number' => $request->phone_number,
+                'status' => 'pending_approval',
+                'created_by_user_id' => auth()->id(),
+            ]);
+
+            // Update branch address with branch reference
+            $branchAddress->update(['branch_id' => $branch->id]);
+
+            $message = 'Branch created and submitted for approval successfully.';
+
+            if ($request->expectsJson()) {
+                return $branch->load(['creator', 'approvedBy', 'branchAddress']);
+            }
+
+            return $this->redirectToIndex('admin.branches.index', $message);
+        }, $request);
     }
 
     /**
@@ -137,36 +138,49 @@ class BranchController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:100|unique:branches,name,' . $branch->id,
-            'address' => 'required|string|max:500',
+            'address_line_1' => 'required|string|max:255',
+            'address_line_2' => 'nullable|string|max:255',
+            'city' => 'required|string|max:100',
+            'state' => 'required|string|max:100',
+            'postcode' => 'required|string|max:20',
+            'country' => 'required|string|max:100',
             'phone_number' => 'nullable|string|max:20',
-            'description' => 'nullable|string|max:1000',
-            'submit_action' => 'sometimes|in:draft,submit_for_approval'
         ], [
             'name.unique' => 'A branch with this name already exists.',
         ]);
 
-        $updateData = [
-            'name' => $request->name,
-            'address' => $request->address,
-            'phone_number' => $request->phone_number,
-            'description' => $request->description,
-        ];
+        // Update branch address
+        if ($branch->branchAddress) {
+            $branch->branchAddress->update([
+                'address_line_1' => $request->address_line_1,
+                'address_line_2' => $request->address_line_2,
+                'city' => $request->city,
+                'state' => $request->state,
+                'postcode' => $request->postcode,
+                'country' => $request->country,
+            ]);
+        } else {
+            // Create branch address if it doesn't exist
+            $branchAddress = BranchAddress::create([
+                'branch_id' => $branch->id,
+                'address_line_1' => $request->address_line_1,
+                'address_line_2' => $request->address_line_2,
+                'city' => $request->city,
+                'state' => $request->state,
+                'postcode' => $request->postcode,
+                'country' => $request->country,
+            ]);
 
-        // Handle status change if submit_action is provided
-        if ($request->has('submit_action')) {
-            if ($request->submit_action === 'submit_for_approval' && $branch->status === 'draft') {
-                $updateData['status'] = 'pending_approval';
-            } elseif ($request->submit_action === 'draft' && $branch->status === 'draft') {
-                // Keep as draft - no status change needed
-                $updateData['status'] = 'draft';
-            }
+            $branch->update(['branch_address_id' => $branchAddress->id]);
         }
 
-        $branch->update($updateData);
+        $branch->update([
+            'name' => $request->name,
+            'phone_number' => $request->phone_number,
+            'status' => 'pending_approval',
+        ]);
 
-        $message = isset($updateData['status']) && $updateData['status'] === 'pending_approval'
-            ? 'Branch updated and submitted for approval successfully.'
-            : 'Branch updated successfully.';
+        $message = 'Branch updated and submitted for approval successfully.';
 
         if ($request->expectsJson()) {
             return response()->json([

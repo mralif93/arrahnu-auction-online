@@ -32,6 +32,7 @@ return new class extends Migration
             $table->index('collateral_id', 'idx_auction_results_collateral_id');
             $table->index('winner_user_id', 'idx_auction_results_winner_user_id');
             $table->index('winning_bid_id', 'idx_auction_results_winning_bid_id');
+            $table->index('result_status', 'idx_auction_results_status');
         });
     }
 

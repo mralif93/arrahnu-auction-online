@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Account;
 use App\Models\Branch;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class AccountController extends Controller
@@ -22,12 +23,17 @@ class AccountController extends Controller
      */
     public function index()
     {
-        $accounts = Account::with(['branch', 'creator', 'approvedBy', 'collaterals'])->orderBy('created_at', 'desc')->get();
-        $totalAccounts = $accounts->count();
-        $activeAccounts = $accounts->where('status', 'active')->count();
-        $totalValue = $accounts->sum(function ($account) {
+        // Calculate statistics from all accounts
+        $totalAccounts = Account::count();
+        $activeAccounts = Account::where('status', 'active')->count();
+        $totalValue = Account::with('collaterals')->get()->sum(function ($account) {
             return $account->collaterals->sum('estimated_value_rm');
         });
+
+        // Get paginated accounts
+        $accounts = Account::with(['branch', 'creator', 'approvedBy', 'collaterals'])
+                          ->orderBy('created_at', 'desc')
+                          ->paginate(15);
 
         return view('admin.accounts.index', compact('accounts', 'totalAccounts', 'activeAccounts', 'totalValue'));
     }
@@ -61,28 +67,17 @@ class AccountController extends Controller
             'branch_id' => 'required|exists:branches,id',
             'account_title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'submit_action' => 'sometimes|in:draft,submit_for_approval'
         ]);
 
-        $accountData = [
+        $account = Account::create([
             'branch_id' => $request->branch_id,
             'account_title' => $request->account_title,
             'description' => $request->description,
+            'status' => Account::STATUS_PENDING_APPROVAL,
             'created_by_user_id' => auth()->id(),
-        ];
+        ]);
 
-        // Determine status based on submit action
-        if ($request->submit_action === 'submit_for_approval') {
-            $accountData['status'] = Account::STATUS_PENDING_APPROVAL;
-        } else {
-            $accountData['status'] = Account::STATUS_DRAFT;
-        }
-
-        $account = Account::create($accountData);
-
-        $message = $accountData['status'] === Account::STATUS_PENDING_APPROVAL
-            ? 'Account created and submitted for approval successfully.'
-            : 'Account saved as draft successfully.';
+        $message = 'Account created and submitted for approval successfully.';
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -144,30 +139,16 @@ class AccountController extends Controller
             'branch_id' => 'required|exists:branches,id',
             'account_title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'submit_action' => 'sometimes|in:draft,submit_for_approval'
         ]);
 
-        $updateData = [
+        $account->update([
             'branch_id' => $request->branch_id,
             'account_title' => $request->account_title,
             'description' => $request->description,
-        ];
+            'status' => Account::STATUS_PENDING_APPROVAL,
+        ]);
 
-        // Handle status change if submit_action is provided
-        if ($request->has('submit_action')) {
-            if ($request->submit_action === 'submit_for_approval' && $account->status === 'draft') {
-                $updateData['status'] = Account::STATUS_PENDING_APPROVAL;
-            } elseif ($request->submit_action === 'draft' && $account->status === 'draft') {
-                // Keep as draft - no status change needed
-                $updateData['status'] = Account::STATUS_DRAFT;
-            }
-        }
-
-        $account->update($updateData);
-
-        $message = isset($updateData['status']) && $updateData['status'] === Account::STATUS_PENDING_APPROVAL
-            ? 'Account updated and submitted for approval successfully.'
-            : 'Account updated successfully.';
+        $message = 'Account updated and submitted for approval successfully.';
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -281,6 +262,6 @@ class AccountController extends Controller
     public function collaterals(Account $account)
     {
         $collaterals = $account->collaterals()->with(['auction'])->orderBy('created_at', 'desc')->get();
-        return view('admin.account-collaterals', compact('account', 'collaterals'));
+        return view('admin.accounts.collaterals', compact('account', 'collaterals'));
     }
 }

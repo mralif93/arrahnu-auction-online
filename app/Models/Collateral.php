@@ -76,11 +76,7 @@ class Collateral extends Model
     const STATUS_DRAFT = 'draft';
     const STATUS_PENDING_APPROVAL = 'pending_approval';
     const STATUS_ACTIVE = 'active';
-    const STATUS_READY_FOR_AUCTION = 'ready_for_auction';
-    const STATUS_AUCTIONING = 'auctioning';
-    const STATUS_SOLD = 'sold';
-    const STATUS_UNSOLD = 'unsold';
-    const STATUS_RETURNED = 'returned';
+    const STATUS_INACTIVE = 'inactive';
     const STATUS_REJECTED = 'rejected';
 
     /**
@@ -107,13 +103,7 @@ class Collateral extends Model
         return $this->belongsTo(User::class, 'highest_bidder_user_id');
     }
 
-    /**
-     * Check if collateral is active.
-     */
-    public function isActive(): bool
-    {
-        return $this->status === 'active';
-    }
+
 
     /**
      * Check if collateral is overdue.
@@ -175,13 +165,87 @@ class Collateral extends Model
     public function getStatusColorAttribute(): string
     {
         return match($this->status) {
+            'draft' => 'gray',
+            'pending_approval' => 'yellow',
             'active' => 'green',
-            'redeemed' => 'blue',
-            'sold' => 'purple',
-            'lost' => 'red',
-            'damaged' => 'orange',
+            'inactive' => 'orange',
+            'rejected' => 'red',
             default => 'gray'
         };
+    }
+
+    /**
+     * Scope a query to only include active collaterals.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', self::STATUS_ACTIVE);
+    }
+
+    /**
+     * Scope a query to only include pending approval collaterals.
+     */
+    public function scopePendingApproval($query)
+    {
+        return $query->where('status', self::STATUS_PENDING_APPROVAL);
+    }
+
+    /**
+     * Check if the collateral is active.
+     */
+    public function isActive(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE;
+    }
+
+    /**
+     * Check if the collateral is pending approval.
+     */
+    public function isPendingApproval(): bool
+    {
+        return $this->status === self::STATUS_PENDING_APPROVAL;
+    }
+
+    /**
+     * Check if the collateral is draft.
+     */
+    public function isDraft(): bool
+    {
+        return $this->status === self::STATUS_DRAFT;
+    }
+
+    /**
+     * Approve the collateral.
+     */
+    public function approve(User $approver): bool
+    {
+        if ($this->status !== self::STATUS_PENDING_APPROVAL) {
+            return false;
+        }
+
+        $this->update([
+            'status' => self::STATUS_ACTIVE,
+            'approved_by_user_id' => $approver->id,
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Reject the collateral.
+     */
+    public function reject(User $approver): bool
+    {
+        if ($this->status !== self::STATUS_PENDING_APPROVAL) {
+            return false;
+        }
+
+        $this->update([
+            'status' => self::STATUS_REJECTED,
+            'approved_by_user_id' => $approver->id,
+        ]);
+
+        return true;
     }
 
     /**

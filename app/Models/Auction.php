@@ -21,7 +21,6 @@ class Auction extends Model
      * The attributes that are mass assignable.
      */
     protected $fillable = [
-        'branch_id',
         'auction_title',
         'description',
         'start_datetime',
@@ -44,10 +43,13 @@ class Auction extends Model
     /**
      * Status constants for the auction.
      */
+    const STATUS_DRAFT = 'draft';
+    const STATUS_PENDING_APPROVAL = 'pending_approval';
     const STATUS_SCHEDULED = 'scheduled';
     const STATUS_ACTIVE = 'active';
     const STATUS_COMPLETED = 'completed';
     const STATUS_CANCELLED = 'cancelled';
+    const STATUS_REJECTED = 'rejected';
 
     /**
      * Get all possible status values.
@@ -55,20 +57,17 @@ class Auction extends Model
     public static function getStatuses(): array
     {
         return [
-            self::STATUS_SCHEDULED,
-            self::STATUS_ACTIVE,
-            self::STATUS_COMPLETED,
-            self::STATUS_CANCELLED,
+            self::STATUS_DRAFT => 'Draft',
+            self::STATUS_PENDING_APPROVAL => 'Pending Approval',
+            self::STATUS_SCHEDULED => 'Scheduled',
+            self::STATUS_ACTIVE => 'Active',
+            self::STATUS_COMPLETED => 'Completed',
+            self::STATUS_CANCELLED => 'Cancelled',
+            self::STATUS_REJECTED => 'Rejected',
         ];
     }
 
-    /**
-     * Get the branch that hosts this auction.
-     */
-    public function branch(): BelongsTo
-    {
-        return $this->belongsTo(Branch::class, 'branch_id');
-    }
+
 
     /**
      * Get the user who created this auction.

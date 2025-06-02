@@ -119,7 +119,7 @@ class DashboardController extends Controller
      */
     private function getActiveAuctions()
     {
-        return Auction::with(['branch', 'collaterals.images', 'collaterals.bids'])
+        return Auction::with(['collaterals.images', 'collaterals.bids'])
                      ->where('status', 'active')
                      ->orderBy('end_datetime', 'asc')
                      ->take(5)

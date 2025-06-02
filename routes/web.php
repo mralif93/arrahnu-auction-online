@@ -66,7 +66,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // ========================================================================
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('/', [AdminUserController::class, 'index'])->name('index');
+        Route::get('/create', [AdminUserController::class, 'create'])->name('create');
+        Route::post('/', [AdminUserController::class, 'store'])->name('store');
+        Route::get('/{user}', [AdminUserController::class, 'show'])->name('show');
+        Route::get('/{user}/edit', [AdminUserController::class, 'edit'])->name('edit');
         Route::put('/{user}', [AdminUserController::class, 'update'])->name('update');
+        Route::post('/{user}/approve', [AdminUserController::class, 'approve'])->name('approve');
+        Route::post('/{user}/reject', [AdminUserController::class, 'reject'])->name('reject');
         Route::post('/{user}/toggle-admin', [AdminUserController::class, 'toggleAdmin'])->name('toggle-admin');
         Route::delete('/{user}', [AdminUserController::class, 'destroy'])->name('delete');
     });
@@ -122,13 +128,27 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // ========================================================================
     Route::prefix('collaterals')->name('collaterals.')->group(function () {
         Route::get('/', [CollateralController::class, 'index'])->name('index');
+        Route::get('/create', [CollateralController::class, 'create'])->name('create');
         Route::post('/', [CollateralController::class, 'store'])->name('store');
+        Route::get('/{collateral}', [CollateralController::class, 'show'])->name('show');
+        Route::get('/{collateral}/edit', [CollateralController::class, 'edit'])->name('edit');
         Route::put('/{collateral}', [CollateralController::class, 'update'])->name('update');
+        Route::delete('/{collateral}', [CollateralController::class, 'destroy'])->name('destroy');
+
+        // Status management
+        Route::post('/{collateral}/toggle-status', [CollateralController::class, 'toggleStatus'])->name('toggle-status');
+        Route::post('/{collateral}/submit-for-approval', [CollateralController::class, 'submitForApproval'])->name('submit-for-approval');
+
+        // Approval workflow
         Route::post('/{collateral}/approve', [CollateralController::class, 'approve'])->name('approve');
         Route::post('/{collateral}/reject', [CollateralController::class, 'reject'])->name('reject');
+
+        // Auction management
         Route::post('/{collateral}/start-auction', [CollateralController::class, 'startAuction'])->name('start-auction');
         Route::post('/{collateral}/end-auction', [CollateralController::class, 'endAuction'])->name('end-auction');
-        Route::delete('/{collateral}', [CollateralController::class, 'destroy'])->name('destroy');
+
+        // Bulk operations
+        Route::post('/bulk-action', [CollateralController::class, 'bulkAction'])->name('bulk-action');
     });
 
     // ========================================================================
@@ -136,12 +156,27 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // ========================================================================
     Route::prefix('auctions')->name('auctions.')->group(function () {
         Route::get('/', [AuctionController::class, 'index'])->name('index');
+        Route::get('/create', [AuctionController::class, 'create'])->name('create');
+        Route::post('/', [AuctionController::class, 'store'])->name('store');
         Route::get('/{auction}', [AuctionController::class, 'show'])->name('show');
+        Route::get('/{auction}/edit', [AuctionController::class, 'edit'])->name('edit');
+        Route::put('/{auction}', [AuctionController::class, 'update'])->name('update');
+        Route::delete('/{auction}', [AuctionController::class, 'destroy'])->name('destroy');
+
+        // Approval workflow
+        Route::post('/{auction}/approve', [AuctionController::class, 'approve'])->name('approve');
+        Route::post('/{auction}/reject', [AuctionController::class, 'reject'])->name('reject');
+
+        // Auction Results
         Route::get('/results/all', [AuctionController::class, 'results'])->name('results');
+
+        // Live Auction Management
         Route::get('/{auction}/live-data', [AuctionController::class, 'liveData'])->name('live-data');
         Route::post('/{auction}/extend', [AuctionController::class, 'extendAuction'])->name('extend');
         Route::post('/{auction}/cancel', [AuctionController::class, 'cancelAuction'])->name('cancel');
         Route::post('/{auction}/restart', [AuctionController::class, 'restartAuction'])->name('restart');
+
+        // Auction Results Management
         Route::post('/results/{auctionResult}/payment-status', [AuctionController::class, 'updatePaymentStatus'])->name('update-payment-status');
         Route::post('/results/{auctionResult}/delivery-status', [AuctionController::class, 'updateDeliveryStatus'])->name('update-delivery-status');
     });

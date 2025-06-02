@@ -17,18 +17,20 @@ return new class extends Migration
             $table->string('action_type', 50);
             $table->string('module_affected', 50);
             $table->uuid('record_id_affected')->nullable();
-            $table->json('old_data')->nullable();
-            $table->json('new_data')->nullable();
+            $table->jsonb('old_data')->nullable();
+            $table->jsonb('new_data')->nullable();
             $table->timestampTz('timestamp')->useCurrent();
             $table->text('description')->nullable();
 
-            // Foreign keys
+            // Foreign key
             $table->foreign('user_id')->references('id')->on('users')->onDelete('set null');
 
             // Performance indexes
             $table->index('user_id', 'idx_audit_logs_user_id');
+            $table->index('action_type', 'idx_audit_logs_action_type');
             $table->index('module_affected', 'idx_audit_logs_module_affected');
             $table->index('record_id_affected', 'idx_audit_logs_record_id_affected');
+            $table->index('timestamp', 'idx_audit_logs_timestamp');
         });
     }
 

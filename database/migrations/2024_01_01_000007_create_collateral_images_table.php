@@ -19,7 +19,7 @@ return new class extends Migration
             $table->integer('order_index')->default(0);
             $table->timestampsTz();
 
-            // Foreign keys
+            // Foreign key
             $table->foreign('collateral_id')->references('id')->on('collaterals')->onDelete('cascade');
 
             // Performance indexes

@@ -28,6 +28,8 @@ return new class extends Migration
             // Performance indexes
             $table->index('collateral_id', 'idx_bids_collateral_id');
             $table->index('user_id', 'idx_bids_user_id');
+            $table->index('bid_time', 'idx_bids_time');
+            $table->index('status', 'idx_bids_status');
         });
     }
 

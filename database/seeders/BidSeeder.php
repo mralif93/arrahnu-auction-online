@@ -15,7 +15,14 @@ class BidSeeder extends Seeder
      */
     public function run(): void
     {
-        $auctioningCollaterals = Collateral::with('auction')->where('status', Collateral::STATUS_AUCTIONING)->get();
+        // Get active collaterals in active auctions for bidding
+        $activeCollaterals = Collateral::with('auction')
+            ->where('status', Collateral::STATUS_ACTIVE)
+            ->whereHas('auction', function($query) {
+                $query->where('status', 'active');
+            })
+            ->get();
+
         $bidders = User::where('role', User::ROLE_BIDDER)->where('status', User::STATUS_ACTIVE)->get();
 
         if ($bidders->isEmpty()) {
@@ -23,7 +30,7 @@ class BidSeeder extends Seeder
             return;
         }
 
-        foreach ($auctioningCollaterals as $collateral) {
+        foreach ($activeCollaterals as $collateral) {
             // Create 3-8 bids per auctioning collateral
             $bidCount = rand(3, 8);
             $currentBid = $collateral->starting_bid_rm;
@@ -58,10 +65,16 @@ class BidSeeder extends Seeder
             ]);
         }
 
-        // Create some bids for ready-for-auction collaterals (pre-bids)
-        $readyCollaterals = Collateral::where('status', Collateral::STATUS_READY_FOR_AUCTION)->take(3)->get();
+        // Create some bids for active collaterals in scheduled auctions (pre-bids)
+        $scheduledCollaterals = Collateral::with('auction')
+            ->where('status', Collateral::STATUS_ACTIVE)
+            ->whereHas('auction', function($query) {
+                $query->where('status', 'scheduled');
+            })
+            ->take(3)
+            ->get();
 
-        foreach ($readyCollaterals as $collateral) {
+        foreach ($scheduledCollaterals as $collateral) {
             $bidCount = rand(1, 3);
 
             for ($i = 0; $i < $bidCount; $i++) {

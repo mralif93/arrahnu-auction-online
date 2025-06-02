@@ -25,7 +25,7 @@
                             <div>
                                 <h1 class="text-3xl font-bold text-[#1b1b18] dark:text-[#EDEDEC] mb-2">{{ $collateral->item_type }}</h1>
                                 <div class="flex items-center space-x-4 text-sm text-[#706f6c] dark:text-[#A1A09A]">
-                                    <span>{{ $collateral->collateral_number }}</span>
+                                    <span>ID: {{ substr($collateral->id, 0, 8) }}</span>
                                     <span>•</span>
                                     <span>{{ ucfirst($collateral->item_type) }}</span>
                                     <span>•</span>
@@ -33,17 +33,13 @@
                                 </div>
                             </div>
                             <div class="flex items-center space-x-2">
-                                @if($collateral->status === 'auctioning')
+                                @if($collateral->status === 'active' && $collateral->auction->status === 'active')
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200">
                                         Live Auction
                                     </span>
-                                @elseif($collateral->status === 'sold')
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-200">
-                                        Sold
-                                    </span>
-                                @elseif($collateral->status === 'unsold')
+                                @elseif($collateral->status === 'inactive')
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200">
-                                        Unsold
+                                        Auction Ended
                                     </span>
                                 @else
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200">
@@ -88,13 +84,13 @@
                                         <span class="text-[#1b1b18] dark:text-[#EDEDEC]">{{ $collateral->purity }}</span>
                                     </div>
                                     <div class="flex justify-between">
-                                        <span class="text-[#706f6c] dark:text-[#A1A09A]">Condition:</span>
+                                        <span class="text-[#706f6c] dark:text-[#A1A09A]">Status:</span>
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
-                                            @if($collateral->condition === 'excellent') bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200
-                                            @elseif($collateral->condition === 'good') bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200
-                                            @elseif($collateral->condition === 'fair') bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200
-                                            @else bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200 @endif">
-                                            {{ ucfirst($collateral->condition) }}
+                                            @if($collateral->status === 'active') bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200
+                                            @elseif($collateral->status === 'pending_approval') bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200
+                                            @elseif($collateral->status === 'inactive') bg-gray-100 dark:bg-gray-900/20 text-gray-800 dark:text-gray-200
+                                            @else bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 @endif">
+                                            {{ ucfirst(str_replace('_', ' ', $collateral->status)) }}
                                         </span>
                                     </div>
                                     <div class="flex justify-between">
@@ -111,23 +107,23 @@
                             <div>
                                 <h4 class="font-medium text-[#1b1b18] dark:text-[#EDEDEC] mb-2">Auction Details</h4>
                                 <div class="space-y-2 text-sm">
-                                    @if($collateral->auction_start_datetime)
-                                        <div class="flex justify-between">
-                                            <span class="text-[#706f6c] dark:text-[#A1A09A]">Start Time:</span>
-                                            <span class="text-[#1b1b18] dark:text-[#EDEDEC]">{{ $collateral->auction_start_datetime->format('M j, Y g:i A') }}</span>
-                                        </div>
-                                    @endif
-                                    @if($collateral->auction_end_datetime)
-                                        <div class="flex justify-between">
-                                            <span class="text-[#706f6c] dark:text-[#A1A09A]">End Time:</span>
-                                            <span class="text-[#1b1b18] dark:text-[#EDEDEC]">{{ $collateral->auction_end_datetime->format('M j, Y g:i A') }}</span>
-                                        </div>
-                                    @endif
-                                    @if($collateral->auction_end_datetime && $collateral->status === 'auctioning')
+                                    <div class="flex justify-between">
+                                        <span class="text-[#706f6c] dark:text-[#A1A09A]">Auction:</span>
+                                        <span class="text-[#1b1b18] dark:text-[#EDEDEC]">{{ $collateral->auction->auction_title }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-[#706f6c] dark:text-[#A1A09A]">Start Time:</span>
+                                        <span class="text-[#1b1b18] dark:text-[#EDEDEC]">{{ $collateral->auction->start_datetime->format('M j, Y g:i A') }}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-[#706f6c] dark:text-[#A1A09A]">End Time:</span>
+                                        <span class="text-[#1b1b18] dark:text-[#EDEDEC]">{{ $collateral->auction->end_datetime->format('M j, Y g:i A') }}</span>
+                                    </div>
+                                    @if($collateral->auction->status === 'active' && $collateral->auction->end_datetime->isFuture())
                                         <div class="flex justify-between">
                                             <span class="text-[#706f6c] dark:text-[#A1A09A]">Time Remaining:</span>
                                             <span class="font-medium text-green-600 dark:text-green-400">
-                                                {{ $collateral->auction_end_datetime->diffForHumans() }}
+                                                {{ $collateral->auction->end_datetime->diffForHumans() }}
                                             </span>
                                         </div>
                                     @endif
@@ -175,7 +171,7 @@
                             </div>
                         </div>
 
-                        @if($collateral->status === 'auctioning')
+                        @if($collateral->status === 'active' && $collateral->auction->status === 'active')
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC] mb-2">Your Bid</label>
@@ -204,23 +200,23 @@
                                     </div>
                                 @endauth
                             </div>
-                        @elseif($collateral->status === 'sold')
+                        @elseif($collateral->auction->status === 'completed')
                             <div class="text-center py-4">
-                                <div class="text-lg font-semibold text-green-600 dark:text-green-400 mb-2">Sold!</div>
+                                <div class="text-lg font-semibold text-green-600 dark:text-green-400 mb-2">Auction Completed!</div>
                                 <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">
-                                    Final price: RM {{ number_format($collateral->current_highest_bid_rm, 2) }}
+                                    Final bid: RM {{ number_format($collateral->current_highest_bid_rm, 2) }}
                                 </div>
                                 @if($collateral->highestBidder)
                                     <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">
-                                        Winner: {{ $collateral->highestBidder->full_name }}
+                                        Highest bidder: {{ $collateral->highestBidder->full_name }}
                                     </div>
                                 @endif
                             </div>
-                        @elseif($collateral->status === 'unsold')
+                        @elseif($collateral->status === 'inactive')
                             <div class="text-center py-4">
-                                <div class="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">Auction Ended - Unsold</div>
+                                <div class="text-lg font-semibold text-gray-600 dark:text-gray-400 mb-2">Auction Ended</div>
                                 <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">
-                                    Highest bid: RM {{ number_format($collateral->current_highest_bid_rm ?? 0, 2) }}
+                                    Final bid: RM {{ number_format($collateral->current_highest_bid_rm ?? $collateral->starting_bid_rm, 2) }}
                                 </div>
                             </div>
                         @else
@@ -239,20 +235,26 @@
 
                         <div class="space-y-3">
                             <div>
-                                <div class="text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC]">Customer</div>
-                                <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">{{ $collateral->account->customer_name }}</div>
+                                <div class="text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC]">Account Title</div>
+                                <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">{{ $collateral->account->account_title }}</div>
                             </div>
 
                             <div>
-                                <div class="text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC]">Account Number</div>
-                                <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">{{ $collateral->account->account_number }}</div>
+                                <div class="text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC]">Account ID</div>
+                                <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">{{ substr($collateral->account->id, 0, 8) }}</div>
                             </div>
 
                             <div>
                                 <div class="text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC]">Branch</div>
                                 <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">{{ $collateral->account->branch->name }}</div>
-                                <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">{{ $collateral->account->branch->address }}</div>
                             </div>
+
+                            @if($collateral->account->description)
+                                <div>
+                                    <div class="text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC]">Description</div>
+                                    <div class="text-sm text-[#706f6c] dark:text-[#A1A09A]">{{ $collateral->account->description }}</div>
+                                </div>
+                            @endif
                         </div>
                     </div>
 

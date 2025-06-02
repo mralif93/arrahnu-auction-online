@@ -7,7 +7,9 @@ use App\Models\Auction;
 use App\Models\Collateral;
 use App\Models\Bid;
 use App\Models\AuctionResult;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AuctionController extends Controller
 {
@@ -22,12 +24,12 @@ class AuctionController extends Controller
         $soldAuctions = Collateral::where('status', 'sold')->count();
         $totalBidValue = Collateral::sum('current_highest_bid_rm');
 
-        // Get all auctions with their collaterals
-        $auctions = Auction::with(['branch', 'creator', 'approvedBy', 'collaterals.bids', 'collaterals.highestBidder'])
+        // Get all auctions with their collaterals (paginated)
+        $auctions = Auction::with(['creator', 'approvedBy', 'collaterals.bids', 'collaterals.highestBidder'])
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(15);
 
-        return view('admin.auctions', compact(
+        return view('admin.auctions.index', compact(
             'activeAuctions',
             'completedAuctions',
             'soldAuctions',
@@ -37,21 +39,120 @@ class AuctionController extends Controller
     }
 
     /**
+     * Show the form for creating a new auction.
+     */
+    public function create()
+    {
+        return view('admin.auctions.create');
+    }
+
+    /**
+     * Store a newly created auction.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'auction_title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'start_datetime' => 'required|date|after:now',
+            'end_datetime' => 'required|date|after:start_datetime',
+        ]);
+
+        $auction = Auction::create([
+            'auction_title' => $request->auction_title,
+            'description' => $request->description,
+            'start_datetime' => $request->start_datetime,
+            'end_datetime' => $request->end_datetime,
+            'status' => 'pending_approval',
+            'created_by_user_id' => Auth::id(),
+        ]);
+
+        return redirect()->route('admin.auctions.index')
+            ->with('success', 'Auction created and submitted for approval successfully.');
+    }
+
+    /**
      * Display auction details with collaterals and bids.
      */
     public function show(Auction $auction)
     {
         $auction->load([
-            'branch',
             'creator',
             'approvedBy',
-            'collaterals.account',
+            'collaterals.account.branch',
             'collaterals.bids.user',
             'collaterals.highestBidder',
             'collaterals.auctionResult'
         ]);
 
-        return view('admin.auction-details', compact('auction'));
+        return view('admin.auctions.show', compact('auction'));
+    }
+
+    /**
+     * Show the form for editing the specified auction.
+     */
+    public function edit(Auction $auction)
+    {
+        // Only allow editing of draft auctions
+        if (!in_array($auction->status, ['draft', 'rejected'])) {
+            return redirect()->route('admin.auctions.show', $auction)
+                ->with('error', 'Only draft or rejected auctions can be edited.');
+        }
+
+        return view('admin.auctions.edit', compact('auction'));
+    }
+
+    /**
+     * Update the specified auction.
+     */
+    public function update(Request $request, Auction $auction)
+    {
+        // Only allow updating of rejected auctions
+        if ($auction->status !== 'rejected') {
+            return redirect()->route('admin.auctions.show', $auction)
+                ->with('error', 'Only rejected auctions can be updated.');
+        }
+
+        $request->validate([
+            'auction_title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'start_datetime' => 'required|date|after:now',
+            'end_datetime' => 'required|date|after:start_datetime',
+        ]);
+
+        $auction->update([
+            'auction_title' => $request->auction_title,
+            'description' => $request->description,
+            'start_datetime' => $request->start_datetime,
+            'end_datetime' => $request->end_datetime,
+            'status' => 'pending_approval',
+        ]);
+
+        return redirect()->route('admin.auctions.index')
+            ->with('success', 'Auction updated and submitted for approval successfully.');
+    }
+
+    /**
+     * Remove the specified auction.
+     */
+    public function destroy(Auction $auction)
+    {
+        // Only allow deletion of scheduled or cancelled auctions with no collaterals
+        if (!in_array($auction->status, ['scheduled', 'cancelled'])) {
+            return redirect()->route('admin.auctions.index')
+                ->with('error', 'Only scheduled or cancelled auctions can be deleted.');
+        }
+
+        if ($auction->collaterals()->count() > 0) {
+            return redirect()->route('admin.auctions.index')
+                ->with('error', 'Cannot delete auction with associated collaterals.');
+        }
+
+        $auctionTitle = $auction->auction_title;
+        $auction->delete();
+
+        return redirect()->route('admin.auctions.index')
+            ->with('success', "Auction '{$auctionTitle}' has been deleted successfully.");
     }
 
     /**
@@ -212,4 +313,64 @@ class AuctionController extends Controller
 
         return redirect()->back()->with('success', "Auction '{$auction->auction_title}' has been restarted.");
     }
+
+    /**
+     * Approve an auction (Checker function).
+     */
+    public function approve(Auction $auction, Request $request)
+    {
+        return $this->handleAction(function () use ($auction) {
+            if (!Auth::user()->canApprove($auction)) {
+                throw new \Exception('You do not have permission to approve this auction.');
+            }
+
+            if ($auction->status !== 'pending_approval') {
+                throw new \Exception('Auction is not pending approval.');
+            }
+
+            $auction->update([
+                'status' => 'scheduled',
+                'approved_by_user_id' => Auth::id(),
+            ]);
+
+            $message = "Auction '{$auction->auction_title}' has been approved and scheduled.";
+
+            if ($request->expectsJson()) {
+                return $auction->fresh(['creator', 'approvedBy', 'collaterals']);
+            }
+
+            return redirect()->back()->with('success', $message);
+        }, $request);
+    }
+
+    /**
+     * Reject an auction (Checker function).
+     */
+    public function reject(Auction $auction, Request $request)
+    {
+        return $this->handleAction(function () use ($auction) {
+            if (!Auth::user()->canApprove($auction)) {
+                throw new \Exception('You do not have permission to reject this auction.');
+            }
+
+            if ($auction->status !== 'pending_approval') {
+                throw new \Exception('Auction is not pending approval.');
+            }
+
+            $auction->update([
+                'status' => 'rejected',
+                'approved_by_user_id' => Auth::id(),
+            ]);
+
+            $message = "Auction '{$auction->auction_title}' has been rejected.";
+
+            if ($request->expectsJson()) {
+                return $auction->fresh(['creator', 'approvedBy', 'collaterals']);
+            }
+
+            return redirect()->back()->with('success', $message);
+        }, $request);
+    }
+
+
 }
