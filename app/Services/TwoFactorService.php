@@ -136,7 +136,7 @@ class TwoFactorService
 
         return $twoFactorCode->getRemainingTime();
     }
-    
+
     /**
      * Generate 6-digit verification code.
      */
@@ -146,7 +146,7 @@ class TwoFactorService
     }
 
     /**
-     * Check if 2FA is enabled globally.
+     * Check if 2FA is enabled.
      */
     public function isEnabled(): bool
     {

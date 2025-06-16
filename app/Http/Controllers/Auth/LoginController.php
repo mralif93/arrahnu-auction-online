@@ -54,7 +54,7 @@ class LoginController extends Controller
                 ]);
             }
 
-            // Check if 2FA is enabled
+            // Check if 2FA is enabled for this user
             if ($this->twoFactorService->isEnabled()) {
                 // Store user ID and remember preference in session for 2FA
                 Session::put('2fa_user_id', $user->id);

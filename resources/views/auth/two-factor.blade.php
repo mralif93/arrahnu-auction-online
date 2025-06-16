@@ -106,7 +106,7 @@
                     <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
                         <ul class="list-disc list-inside space-y-1">
                             <li>Never share your verification code with anyone</li>
-                            <li>This code will expire in 5 minutes</li>
+                            <li>This code will expire in 12.5 minutes</li>
                             <li>You have 3 attempts to enter the correct code</li>
                         </ul>
                     </div>

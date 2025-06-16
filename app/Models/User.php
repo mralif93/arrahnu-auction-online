@@ -11,12 +11,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 use App\Traits\HasAuditTrail;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasAuditTrail, HasUuids;
+    use HasFactory, Notifiable, HasApiTokens, HasAuditTrail, HasUuids;
 
     /**
      * The table associated with the model.
@@ -67,6 +68,8 @@ class User extends Authenticatable
         'reset_password_expires_at',
         'created_by_user_id',
         'approved_by_user_id',
+        'avatar_path',
+        'preferences',
     ];
 
     /**
@@ -128,6 +131,7 @@ class User extends Authenticatable
             'reset_password_expires_at' => 'datetime',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
+            'preferences' => 'array',
         ];
     }
 
@@ -235,7 +239,92 @@ class User extends Authenticatable
         $this->notify(new ResetPasswordNotification($token));
     }
 
+    /**
+     * Get the user's avatar URL.
+     */
+    public function getAvatarUrlAttribute(): string
+    {
+        if ($this->avatar_path) {
+            return asset('storage/' . $this->avatar_path);
+        }
+        
+        // Return default avatar or gravatar
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->full_name ?? $this->username) . '&color=ffffff&background=f53003&size=200';
+    }
 
+    /**
+     * Get user's initials for avatar.
+     */
+    public function getInitialsAttribute(): string
+    {
+        $name = $this->full_name ?? $this->username;
+        $words = explode(' ', $name);
+        
+        if (count($words) >= 2) {
+            return strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+        }
+        
+        return strtoupper(substr($name, 0, 2));
+    }
+
+    /**
+     * Get user preferences with defaults.
+     */
+    public function getPreferencesAttribute($value): array
+    {
+        $defaults = [
+            'email_notifications' => true,
+            'sms_notifications' => false,
+            'marketing_emails' => false,
+            'timezone' => 'UTC',
+            'language' => 'en',
+        ];
+
+        if (!$value) {
+            return $defaults;
+        }
+
+        $preferences = is_string($value) ? json_decode($value, true) : $value;
+        return array_merge($defaults, $preferences ?? []);
+    }
+
+    /**
+     * Get user's display name.
+     */
+    public function getDisplayNameAttribute(): string
+    {
+        return $this->full_name ?? $this->username;
+    }
+
+    /**
+     * Check if user has completed their profile.
+     */
+    public function hasCompleteProfile(): bool
+    {
+        return !empty($this->full_name) && 
+               !empty($this->email) && 
+               $this->is_email_verified;
+    }
+
+    /**
+     * Get profile completion percentage.
+     */
+    public function getProfileCompletionAttribute(): int
+    {
+        $fields = [
+            'full_name' => !empty($this->full_name),
+            'email' => !empty($this->email),
+            'phone_number' => !empty($this->phone_number),
+            'is_email_verified' => $this->is_email_verified,
+            'is_phone_verified' => $this->is_phone_verified,
+            'avatar_path' => !empty($this->avatar_path),
+        ];
+
+        $completed = array_sum($fields);
+        $total = count($fields);
+
+        return round(($completed / $total) * 100);
+    }
 
     /**
      * Check if the user is a regular user (not admin).
@@ -284,8 +373,6 @@ class User extends Authenticatable
     {
         return $this->belongsTo(User::class, 'approved_by_user_id');
     }
-
-
 
     /**
      * Get the users created by this user.

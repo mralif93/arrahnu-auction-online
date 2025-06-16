@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PublicController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DashboardMonitoringController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\BranchController;
 use App\Http\Controllers\Admin\AccountController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\TwoFactorController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -50,8 +52,27 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Admin Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Dashboard Monitoring
+    Route::get('/dashboard/monitoring', [DashboardMonitoringController::class, 'index'])->name('dashboard.monitoring');
+    Route::get('/dashboard/monitoring/overview', [DashboardMonitoringController::class, 'getOverview'])->name('dashboard.monitoring.overview');
+    Route::get('/dashboard/monitoring/user-analytics', [DashboardMonitoringController::class, 'getUserAnalytics'])->name('dashboard.monitoring.user-analytics');
+    Route::get('/dashboard/monitoring/auction-analytics', [DashboardMonitoringController::class, 'getAuctionAnalytics'])->name('dashboard.monitoring.auction-analytics');
+    Route::get('/dashboard/monitoring/system-metrics', [DashboardMonitoringController::class, 'getSystemMetrics'])->name('dashboard.monitoring.system-metrics');
+    Route::get('/dashboard/monitoring/activity-feed', [DashboardMonitoringController::class, 'getActivityFeed'])->name('dashboard.monitoring.activity-feed');
+    Route::get('/dashboard/monitoring/alerts', [DashboardMonitoringController::class, 'getAlerts'])->name('dashboard.monitoring.alerts');
+
     // Admin Profile Settings
     Route::get('/profile', [DashboardController::class, 'profile'])->name('profile');
+
+    // System Settings
+    Route::prefix('settings')->name('settings.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('index');
+        Route::get('/data', [App\Http\Controllers\Admin\SettingsController::class, 'getSettings'])->name('data');
+        Route::post('/update', [App\Http\Controllers\Admin\SettingsController::class, 'updateSettings'])->name('update');
+        Route::post('/toggle-2fa', [App\Http\Controllers\Admin\SettingsController::class, 'toggle2FA'])->name('toggle-2fa');
+        Route::post('/reset', [App\Http\Controllers\Admin\SettingsController::class, 'resetToDefaults'])->name('reset');
+        Route::get('/system-status', [App\Http\Controllers\Admin\SettingsController::class, 'getSystemStatus'])->name('system-status');
+    });
 
     // ========================================================================
     // USER MANAGEMENT
@@ -173,6 +194,21 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('/results/{auctionResult}/delivery-status', [AuctionController::class, 'updateDeliveryStatus'])->name('update-delivery-status');
     });
 
+    // ========================================================================
+    // ADDRESS MANAGEMENT
+    // ========================================================================
+    Route::prefix('addresses')->name('addresses.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Admin\AddressController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Admin\AddressController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Admin\AddressController::class, 'store'])->name('store');
+        Route::get('/{address}', [App\Http\Controllers\Admin\AddressController::class, 'show'])->name('show');
+        Route::get('/{address}/edit', [App\Http\Controllers\Admin\AddressController::class, 'edit'])->name('edit');
+        Route::put('/{address}', [App\Http\Controllers\Admin\AddressController::class, 'update'])->name('update');
+        Route::delete('/{address}', [App\Http\Controllers\Admin\AddressController::class, 'destroy'])->name('destroy');
+        Route::post('/{address}/set-primary', [App\Http\Controllers\Admin\AddressController::class, 'setPrimary'])->name('set-primary');
+        Route::get('/users/{user}/addresses', [App\Http\Controllers\Admin\AddressController::class, 'getUserAddresses'])->name('user-addresses');
+        Route::post('/bulk-action', [App\Http\Controllers\Admin\AddressController::class, 'bulkAction'])->name('bulk-action');
+    });
 
 });
 
@@ -220,7 +256,28 @@ Route::middleware('auth')->group(function () {
     // User Profile Management
     Route::prefix('profile')->name('profile.')->group(function () {
         Route::get('/', [UserController::class, 'editProfile'])->name('edit');
+        Route::get('/view', [UserController::class, 'showProfile'])->name('show');
         Route::put('/', [UserController::class, 'updateProfile'])->name('update');
+        Route::post('/avatar', [UserController::class, 'updateAvatar'])->name('avatar.update');
+        Route::get('/settings', [UserController::class, 'settings'])->name('settings');
+        Route::put('/settings', [UserController::class, 'updateSettings'])->name('settings.update');
         Route::delete('/', [UserController::class, 'deleteAccount'])->name('destroy');
+        
+
+    });
+
+    // Address Management
+    Route::prefix('addresses')->name('addresses.')->group(function () {
+        Route::get('/', [App\Http\Controllers\AddressController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\AddressController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\AddressController::class, 'store'])->name('store');
+        Route::get('/{address}', [App\Http\Controllers\AddressController::class, 'show'])->name('show');
+        Route::get('/{address}/edit', [App\Http\Controllers\AddressController::class, 'edit'])->name('edit');
+        Route::put('/{address}', [App\Http\Controllers\AddressController::class, 'update'])->name('update');
+        Route::post('/{address}/set-primary', [App\Http\Controllers\AddressController::class, 'setPrimary'])->name('set-primary');
+        Route::delete('/{address}', [App\Http\Controllers\AddressController::class, 'destroy'])->name('destroy');
+        
+        // Utility routes
+        Route::get('/api/states', [App\Http\Controllers\AddressController::class, 'getStates'])->name('states');
     });
 });

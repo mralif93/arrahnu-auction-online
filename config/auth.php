@@ -125,7 +125,7 @@ return [
 
     'two_factor' => [
         'enabled' => env('TWO_FACTOR_ENABLED', false),
-        'code_expiry' => env('TWO_FACTOR_CODE_EXPIRY', 300), // seconds
+        'code_expiry' => env('TWO_FACTOR_CODE_EXPIRY', 750), // seconds (12.5 minutes)
         'max_attempts' => env('TWO_FACTOR_MAX_ATTEMPTS', 3),
     ],
 

@@ -10,6 +10,9 @@
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700" rel="stylesheet" />
+        
+        <!-- Boxicons -->
+        <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
         <!-- Styles / Scripts -->
         @if (file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
@@ -102,50 +105,56 @@
                 <nav class="flex-1 p-4 space-y-2">
                     <!-- Dashboard -->
                     <a href="{{ route('admin.dashboard') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('admin.dashboard') ? 'text-brand bg-brand/5' : 'text-[#706f6c] dark:text-[#A1A09A] hover:text-[#1b1b18] dark:hover:text-[#EDEDEC] hover:bg-[#f8f8f7] dark:hover:bg-[#1a1a19]' }} rounded-lg transition-colors">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 00-2-2m0 0V5a2 2 0 012-2h2a2 2 0 00-2-2m0 0V9a2 2 0 012-2h2a2 2 0 00-2-2"></path>
-                        </svg>
+                        <i class='bx bx-grid-alt text-xl mr-3'></i>
                         Dashboard
+                    </a>
+
+                    <!-- Monitoring -->
+                    <a href="{{ route('admin.dashboard.monitoring') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('admin.dashboard.monitoring') ? 'text-brand bg-brand/5' : 'text-[#706f6c] dark:text-[#A1A09A] hover:text-[#1b1b18] dark:hover:text-[#EDEDEC] hover:bg-[#f8f8f7] dark:hover:bg-[#1a1a19]' }} rounded-lg transition-colors">
+                        <i class='bx bx-bar-chart-alt-2 text-xl mr-3'></i>
+                        Monitoring
                     </a>
 
                     <!-- User -->
                     <a href="{{ route('admin.users.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('admin.users.*') ? 'text-brand bg-brand/5' : 'text-[#706f6c] dark:text-[#A1A09A] hover:text-[#1b1b18] dark:hover:text-[#EDEDEC] hover:bg-[#f8f8f7] dark:hover:bg-[#1a1a19]' }} rounded-lg transition-colors">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                        </svg>
+                        <i class='bx bx-user text-xl mr-3'></i>
                         User
                     </a>
 
                     <!-- Auction -->
                     <a href="{{ route('admin.auctions.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('admin.auctions.*') ? 'text-brand bg-brand/5' : 'text-[#706f6c] dark:text-[#A1A09A] hover:text-[#1b1b18] dark:hover:text-[#EDEDEC] hover:bg-[#f8f8f7] dark:hover:bg-[#1a1a19]' }} rounded-lg transition-colors">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m3 0H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zM9 12l2 2 4-4"></path>
-                        </svg>
+                        <i class='bx bx-purchase-tag text-xl mr-3'></i>
                         Auction
                     </a>
 
                     <!-- Branch -->
                     <a href="{{ route('admin.branches.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('admin.branches.*') ? 'text-brand bg-brand/5' : 'text-[#706f6c] dark:text-[#A1A09A] hover:text-[#1b1b18] dark:hover:text-[#EDEDEC] hover:bg-[#f8f8f7] dark:hover:bg-[#1a1a19]' }} rounded-lg transition-colors">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                        </svg>
+                        <i class='bx bx-buildings text-xl mr-3'></i>
                         Branch
                     </a>
 
                     <!-- Account -->
                     <a href="{{ route('admin.accounts.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('admin.accounts.*') ? 'text-brand bg-brand/5' : 'text-[#706f6c] dark:text-[#A1A09A] hover:text-[#1b1b18] dark:hover:text-[#EDEDEC] hover:bg-[#f8f8f7] dark:hover:bg-[#1a1a19]' }} rounded-lg transition-colors">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
+                        <i class='bx bx-wallet text-xl mr-3'></i>
                         Account
                     </a>
 
                     <!-- Collateral -->
                     <a href="{{ route('admin.collaterals.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('admin.collaterals.*') ? 'text-brand bg-brand/5' : 'text-[#706f6c] dark:text-[#A1A09A] hover:text-[#1b1b18] dark:hover:text-[#EDEDEC] hover:bg-[#f8f8f7] dark:hover:bg-[#1a1a19]' }} rounded-lg transition-colors">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                        </svg>
+                        <i class='bx bx-package text-xl mr-3'></i>
                         Collateral
+                    </a>
+
+                    <!-- Addresses -->
+                    <a href="{{ route('admin.addresses.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('admin.addresses.*') ? 'text-brand bg-brand/5' : 'text-[#706f6c] dark:text-[#A1A09A] hover:text-[#1b1b18] dark:hover:text-[#EDEDEC] hover:bg-[#f8f8f7] dark:hover:bg-[#1a1a19]' }} rounded-lg transition-colors">
+                        <i class='bx bx-map text-xl mr-3'></i>
+                        Addresses
+                    </a>
+
+                    <!-- Settings -->
+                    <a href="{{ route('admin.settings.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('admin.settings.*') ? 'text-brand bg-brand/5' : 'text-[#706f6c] dark:text-[#A1A09A] hover:text-[#1b1b18] dark:hover:text-[#EDEDEC] hover:bg-[#f8f8f7] dark:hover:bg-[#1a1a19]' }} rounded-lg transition-colors">
+                        <i class='bx bx-cog text-xl mr-3'></i>
+                        Settings
                     </a>
 
                     <!-- Divider -->
@@ -153,10 +162,7 @@
 
                     <!-- User Dashboard -->
                     <a href="{{ route('dashboard') }}" class="flex items-center px-3 py-2 text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] hover:text-[#1b1b18] dark:hover:text-[#EDEDEC] hover:bg-[#f8f8f7] dark:hover:bg-[#1a1a19] rounded-lg transition-colors">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"></path>
-                        </svg>
+                        <i class='bx bx-tachometer text-xl mr-3'></i>
                         User Dashboard
                     </a>
                 </nav>
