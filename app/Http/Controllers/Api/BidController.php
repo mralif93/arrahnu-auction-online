@@ -211,68 +211,6 @@ class BidController extends Controller
     }
 
     /**
-     * Get active auctions for public viewing.
-     */
-    public function activeAuctions(Request $request)
-    {
-        try {
-            $perPage = min($request->get('per_page', 20), 50);
-            
-            $query = Auction::select([
-                'id', 
-                'auction_title', 
-                'description', 
-                'start_datetime', 
-                'end_datetime', 
-                'status'
-            ])
-            ->where('status', 'active')
-            ->where('start_datetime', '<=', now())
-            ->where('end_datetime', '>', now());
-
-            // Optional search functionality
-            if ($request->has('search')) {
-                $search = $request->search;
-                $query->where(function($q) use ($search) {
-                    $q->where('auction_title', 'like', "%{$search}%")
-                      ->orWhere('description', 'like', "%{$search}%");
-                });
-            }
-
-            $auctions = $query->orderBy('end_datetime', 'asc')->paginate($perPage);
-
-            // Add computed time remaining
-            $auctions->getCollection()->transform(function ($auction) {
-                $auction->time_remaining = $auction->end_datetime->diffInSeconds(now());
-                return $auction;
-            });
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Active auctions retrieved successfully.',
-                'data' => [
-                    'auctions' => $auctions->items(),
-                    'pagination' => [
-                        'current_page' => $auctions->currentPage(),
-                        'last_page' => $auctions->lastPage(),
-                        'per_page' => $auctions->perPage(),
-                        'total' => $auctions->total(),
-                        'from' => $auctions->firstItem(),
-                        'to' => $auctions->lastItem(),
-                    ]
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to retrieve active auctions.',
-                'error' => config('app.debug') ? $e->getMessage() : 'An unexpected error occurred'
-            ], 500);
-        }
-    }
-
-    /**
      * Get collateral details for bidding.
      */
     public function collateralDetails(Collateral $collateral)

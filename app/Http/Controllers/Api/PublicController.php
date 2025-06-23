@@ -370,4 +370,58 @@ class PublicController extends Controller
             ]
         ]);
     }
+
+    /**
+     * Get active auctions available for bidding.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function activeAuctions(Request $request)
+    {
+        // Validate request parameters
+        $request->validate([
+            'per_page' => 'nullable|integer|min:1|max:50',
+            'search' => 'nullable|string|max:255'
+        ]);
+
+        // Build query for active auctions
+        $query = Auction::with(['collaterals.images', 'collaterals.bids', 'collaterals.highestBidder'])
+            ->where('status', 'active')
+            ->where('start_datetime', '<=', now())
+            ->where('end_datetime', '>', now());
+
+        // Apply search if provided
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('auction_title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        // Order by end datetime (soonest ending first)
+        $query->orderBy('end_datetime', 'asc');
+
+        // Paginate results
+        $perPage = $request->input('per_page', 20);
+        $auctions = $query->paginate($perPage);
+
+        // Transform the data to include computed values
+        $auctions->getCollection()->transform(function ($auction) {
+            $auction->time_remaining = now()->diffInSeconds($auction->end_datetime, false);
+            $auction->total_bids = $auction->collaterals->sum(function($collateral) {
+                return $collateral->bids->count();
+            });
+            $auction->total_value = $auction->collaterals->sum('current_highest_bid_rm');
+            
+            return $auction;
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Active auctions retrieved successfully',
+            'data' => $auctions
+        ]);
+    }
 } 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\ApiMonitoringController;
+use App\Http\Controllers\Api\PublicController;
 
 /*
 |--------------------------------------------------------------------------
@@ -183,7 +184,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Public routes
-Route::get('/auctions/active', [App\Http\Controllers\Api\BidController::class, 'activeAuctions']);
+Route::get('auctions/active', [PublicController::class, 'activeAuctions']);
 
 // Public API Routes for Lists
 Route::prefix('lists')->group(function () {
