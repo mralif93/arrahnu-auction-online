@@ -189,7 +189,10 @@
                             <form method="POST" action="{{ route('admin.users.approve', $user) }}" class="inline">
                                 @csrf
                                 <button type="submit"
-                                        class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
+                                        class="inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-lg border-0 cursor-pointer transition-colors"
+                                        style="background-color: #FE5000;"
+                                        onmouseover="this.style.backgroundColor='#E5470A'"
+                                        onmouseout="this.style.backgroundColor='#FE5000'"
                                         onclick="return confirm('Approve user {{ $user->full_name }}?')">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -248,7 +251,7 @@
                             <label class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-2">Email Address</label>
                             <div class="flex items-center space-x-3">
                                 <p class="text-[#1b1b18] dark:text-[#EDEDEC]">{{ $user->email }}</p>
-                                @if($user->is_email_verified)
+                                @if($user->isEmailVerified())
                                     <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200">
                                         <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
@@ -355,8 +358,8 @@
 
                         <!-- Permissions Grid -->
                         <div>
-                            <label class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-3">System Permissions</label>
-                            <div class="grid grid-cols-2 gap-4">
+                            <label class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-3">System Permissions & Security</label>
+                            <div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
                                 <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#1a1a19] rounded-lg">
                                     <div class="flex items-center space-x-2">
                                         <svg class="w-4 h-4 text-[#706f6c] dark:text-[#A1A09A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -403,6 +406,10 @@
                                             No
                                         </span>
                                     @endif
+                                </div>
+
+                                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-[#1a1a19] rounded-lg">
+
                                 </div>
                             </div>
                         </div>
@@ -529,6 +536,186 @@
                                 <p class="text-xs text-[#706f6c] dark:text-[#A1A09A]">{{ $user->updated_at->format('g:i A') }}</p>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Verification Management -->
+            <div class="bg-white dark:bg-[#161615] rounded-xl border border-[#e3e3e0] dark:border-[#3E3E3A] overflow-hidden">
+                <div class="px-6 py-4 bg-gray-50 dark:bg-[#1a1a19] border-b border-[#e3e3e0] dark:border-[#3E3E3A]">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                            </svg>
+                            <h3 class="text-lg font-semibold text-[#1b1b18] dark:text-[#EDEDEC]">Email Verification Management</h3>
+                        </div>
+                        <div class="text-sm">
+                            @if($user->isEmailVerified())
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Email Verified
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200">
+                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Email Not Verified
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-6">
+                        <!-- Email Status Information -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-2">Email Address</label>
+                                <div class="flex items-center space-x-3">
+                                    <p class="text-[#1b1b18] dark:text-[#EDEDEC] font-mono bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded">{{ $user->email }}</p>
+                                    @if($user->isEmailVerified())
+                                        <span class="text-green-600 dark:text-green-400 text-sm">✓ Verified</span>
+                                    @else
+                                        <span class="text-yellow-600 dark:text-yellow-400 text-sm">⚠ Unverified</span>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-2">Verification Status</label>
+                                <div class="space-y-2">
+                                    @if($user->email_verified_at)
+                                        <p class="text-sm text-[#1b1b18] dark:text-[#EDEDEC]">
+                                            <strong>Verified:</strong> {{ $user->email_verified_at->format('M j, Y \a\t g:i A') }}
+                                        </p>
+                                        <p class="text-xs text-[#706f6c] dark:text-[#A1A09A]">
+                                            {{ $user->email_verified_at->diffForHumans() }}
+                                        </p>
+                                    @else
+                                        <p class="text-sm text-yellow-600 dark:text-yellow-400">Email verification required</p>
+                                        @if($user->verification_token_expires_at)
+                                            <p class="text-xs text-[#706f6c] dark:text-[#A1A09A]">
+                                                Token expires: {{ $user->verification_token_expires_at->format('M j, Y \a\t g:i A') }}
+                                            </p>
+                                        @endif
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Admin Actions -->
+                        <div class="border-t border-[#e3e3e0] dark:border-[#3E3E3A] pt-6">
+                            <label class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-4">Admin Actions</label>
+                            
+                            <div class="flex flex-wrap items-center gap-3" style="display: flex !important; visibility: visible !important;">
+                                @if(!$user->isEmailVerified())
+                                    <!-- Manually Verify Email -->
+                                    <form method="POST" action="{{ route('admin.users.verify-email', $user) }}" class="inline-block" style="display: inline-block !important;">
+                                        @csrf
+                                        <button type="submit"
+                                                class="inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-lg border-0 cursor-pointer transition-colors"
+                                                style="background-color: #FE5000 !important; display: inline-flex !important; visibility: visible !important; opacity: 1 !important; position: relative !important; z-index: 10 !important;"
+                                                onmouseover="this.style.backgroundColor='#E5470A'"
+                                                onmouseout="this.style.backgroundColor='#FE5000'"
+                                                onclick="return confirm('Manually verify email for {{ $user->full_name }}?')">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            Verify Email
+                                        </button>
+                                    </form>
+
+                                    <!-- Send Verification Email -->
+                                    <form method="POST" action="{{ route('admin.users.send-verification-email', $user) }}" class="inline-block" style="display: inline-block !important;">
+                                        @csrf
+                                        <button type="submit"
+                                                class="inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors"
+                                                style="background-color: #2563eb !important; display: inline-flex !important; visibility: visible !important; opacity: 1 !important; position: relative !important; z-index: 10 !important;"
+                                                onmouseover="this.style.backgroundColor='#1d4ed8'"
+                                                onmouseout="this.style.backgroundColor='#2563eb'">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                            </svg>
+                                            Send Verification Email
+                                        </button>
+                                    </form>
+                                @else
+                                    <!-- Reset Email Verification -->
+                                    <form method="POST" action="{{ route('admin.users.reset-email-verification', $user) }}" class="inline-block" style="display: inline-block !important;">
+                                        @csrf
+                                        <button type="submit"
+                                                class="inline-flex items-center px-4 py-2 text-white text-sm font-medium rounded-lg transition-colors"
+                                                style="background-color: #d97706 !important; display: inline-flex !important; visibility: visible !important; opacity: 1 !important; position: relative !important; z-index: 10 !important;"
+                                                onmouseover="this.style.backgroundColor='#b45309'"
+                                                onmouseout="this.style.backgroundColor='#d97706'"
+                                                onclick="return confirm('Reset email verification for {{ $user->full_name }}? They will need to verify their email again.')">
+                                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                            </svg>
+                                            Reset Verification
+                                        </button>
+                                    </form>
+                                @endif
+
+                                <!-- View Verification Status -->
+                                <a href="{{ route('admin.users.verification-status', $user) }}"
+                                   class="inline-flex items-center px-4 py-2 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-lg transition-colors"
+                                   style="background-color: #f3f4f6 !important; display: inline-flex !important; visibility: visible !important; opacity: 1 !important; position: relative !important; z-index: 10 !important;"
+                                   onmouseover="this.style.backgroundColor='#e5e7eb'"
+                                   onmouseout="this.style.backgroundColor='#f3f4f6'">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                                    </svg>
+                                    View Status Details
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Verification History -->
+                        @if($user->failed_verification_attempts > 0 || $user->email_verification_sent_at)
+                            <div class="border-t border-[#e3e3e0] dark:border-[#3E3E3A] pt-6">
+                                <label class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-4">Verification History</label>
+                                <div class="space-y-3">
+                                    @if($user->email_verification_sent_at)
+                                        <div class="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/10 rounded-lg">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+                                                    <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <p class="text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC]">Last Verification Email Sent</p>
+                                                    <p class="text-xs text-[#706f6c] dark:text-[#A1A09A]">{{ $user->email_verification_sent_at->format('M j, Y \a\t g:i A') }}</p>
+                                                </div>
+                                            </div>
+                                            <span class="text-xs text-blue-600 dark:text-blue-400">{{ $user->email_verification_sent_at->diffForHumans() }}</span>
+                                        </div>
+                                    @endif
+
+                                    @if($user->failed_verification_attempts > 0)
+                                        <div class="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/10 rounded-lg">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-8 h-8 bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center">
+                                                    <svg class="w-4 h-4 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                                    </svg>
+                                                </div>
+                                                <div>
+                                                    <p class="text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC]">Failed Verification Attempts</p>
+                                                    <p class="text-xs text-[#706f6c] dark:text-[#A1A09A]">User has {{ $user->failed_verification_attempts }} failed attempts</p>
+                                                </div>
+                                            </div>
+                                            <span class="text-xs font-medium text-yellow-600 dark:text-yellow-400">{{ $user->failed_verification_attempts }} attempts</span>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

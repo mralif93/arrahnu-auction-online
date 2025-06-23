@@ -457,7 +457,7 @@
                         alert('Notification composer would open here');
                         break;
                     default:
-                        console.log('Unknown action:', action);
+                        // Unknown action
                 }
             }
 
@@ -491,7 +491,7 @@
                 ];
 
                 // This would typically fetch from an API
-                console.log('Activity feed refreshed with new data');
+                // Activity feed refreshed with new data
             }
 
             // Refresh activity feed every 2 minutes

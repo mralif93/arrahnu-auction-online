@@ -190,28 +190,52 @@
 
                                 <!-- Status & Verification -->
                                 <td class="px-6 py-4 whitespace-nowrap border-r border-[#e3e3e0] dark:border-[#3E3E3A]">
-                                    @if($user->status === 'active')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200">
-                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
-                                                <circle cx="4" cy="4" r="3"/>
-                                            </svg>
-                                            Active
-                                        </span>
-                                    @elseif($user->status === 'pending_approval')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200">
-                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
-                                                <circle cx="4" cy="4" r="3"/>
-                                            </svg>
-                                            Pending
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-900/20 text-gray-800 dark:text-gray-200">
-                                            <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
-                                                <circle cx="4" cy="4" r="3"/>
-                                            </svg>
-                                            {{ ucfirst($user->status) }}
-                                        </span>
-                                    @endif
+                                    <div class="space-y-2">
+                                        @if($user->status === 'active')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200">
+                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
+                                                    <circle cx="4" cy="4" r="3"/>
+                                                </svg>
+                                                Active
+                                            </span>
+                                        @elseif($user->status === 'pending_approval')
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200">
+                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
+                                                    <circle cx="4" cy="4" r="3"/>
+                                                </svg>
+                                                Pending
+                                            </span>
+                                        @else
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-900/20 text-gray-800 dark:text-gray-200">
+                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
+                                                    <circle cx="4" cy="4" r="3"/>
+                                                </svg>
+                                                {{ ucfirst($user->status) }}
+                                            </span>
+                                        @endif
+                                        
+                                        <div class="flex items-center space-x-2">
+                                            @if($user->is_email_verified)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200">
+                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                                    </svg>
+                                                    Email
+                                                </span>
+                                            @endif
+                                            
+
+                                            
+                                            @if($user->is_admin)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-200">
+                                                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd" d="M9.664 4.11a1 1 0 01.672 0l3 1.002a1 1 0 01.664.949v1.97a4.999 4.999 0 01-1.986 3.996l-3 2.22a1 1 0 01-1.328 0l-3-2.22A4.999 4.999 0 013 8.032v-1.97a1 1 0 01.664-.949l3-1.002zM8 11.5a.5.5 0 01.5-.5h3a.5.5 0 010 1h-3a.5.5 0 01-.5-.5z" clip-rule="evenodd"></path>
+                                                    </svg>
+                                                    Admin
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </td>
 
                                 <!-- Created & Approved -->
@@ -247,6 +271,8 @@
                                            class="px-3 py-1 bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-200 text-xs font-medium rounded-full hover:bg-purple-200 dark:hover:bg-purple-900/40 transition-colors">
                                             Edit
                                         </a>
+
+
 
                                         <!-- Approval Actions -->
                                         @if($user->status === 'pending_approval' && Auth::user()->canApprove($user))

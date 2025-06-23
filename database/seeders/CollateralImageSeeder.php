@@ -9,26 +9,24 @@ use Illuminate\Support\Str;
 
 class CollateralImageSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
+
     public function run(): void
     {
         $collaterals = Collateral::all();
 
         $sampleImages = [
-            'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400',
-            'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400',
-            'https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=400',
-            'https://images.unsplash.com/photo-1544966503-7cc5ac882d5f?w=400',
-            'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400',
-            'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400',
-            'https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=400',
-            'https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=400',
+            'https://via.placeholder.com/800x600/FFD700/000000?text=Gold+Ring',
+            'https://via.placeholder.com/800x600/C0C0C0/000000?text=Silver+Chain',
+            'https://via.placeholder.com/800x600/E5E4E2/000000?text=Platinum+Item',
+            'https://via.placeholder.com/800x600/B87333/000000?text=Diamond+Jewelry',
+            'https://via.placeholder.com/800x600/DAA520/000000?text=Gold+Necklace',
+            'https://via.placeholder.com/800x600/CD7F32/000000?text=Bronze+Item',
+            'https://via.placeholder.com/800x600/FFF8DC/000000?text=Pearl+Jewelry',
+            'https://via.placeholder.com/800x600/708090/000000?text=Precious+Stone',
         ];
 
         foreach ($collaterals as $collateral) {
-            // Create 2-4 images per collateral
+
             $imageCount = rand(2, 4);
 
             for ($i = 0; $i < $imageCount; $i++) {
@@ -36,7 +34,7 @@ class CollateralImageSeeder extends Seeder
                     'id' => Str::uuid(),
                     'collateral_id' => $collateral->id,
                     'image_url' => $sampleImages[array_rand($sampleImages)],
-                    'is_thumbnail' => $i === 0, // First image is thumbnail
+                    'is_thumbnail' => $i === 0,
                     'order_index' => $i,
                 ]);
             }

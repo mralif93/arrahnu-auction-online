@@ -12,15 +12,8 @@ use App\Models\Account;
 
 class AuctionSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * Creates exactly 1 LIVE (active) auction with the rest being historical auctions
-     * in completed, cancelled, rejected, pending_approval, or scheduled statuses.
-     */
     public function run(): void
     {
-        // Get admin user and active accounts
         $admin = User::where('email', 'admin@arrahnu.com')->first();
         $accounts = Account::where('status', 'active')->get();
 
@@ -34,21 +27,20 @@ class AuctionSeeder extends Seeder
             return;
         }
 
-        // Create sample auctions with realistic titles
         $auctionTitles = [
-            'January 2025 Live Gold & Jewelry Auction',    // The active one
-            'December 2024 Premium Collection',             // Completed
-            'November 2024 Diamond Showcase',               // Completed
-            'October 2024 Silver Collection',               // Completed
-            'September 2024 Mixed Assets Auction',          // Completed
-            'August 2024 Luxury Items Sale',                // Completed
-            'July 2024 Precious Metals Auction',            // Cancelled
-            'June 2024 Summer Collection',                  // Cancelled
-            'May 2024 Spring Jewelry Sale',                 // Rejected
-            'April 2024 Easter Special',                    // Rejected
-            'February 2025 Valentine Collection',           // Pending Approval
-            'March 2025 Spring Preview',                    // Scheduled
-            'April 2025 Easter Jewelry Sale',               // Scheduled
+            'January 2025 Live Gold & Jewelry Auction',
+            'December 2024 Premium Collection',
+            'November 2024 Diamond Showcase',
+            'October 2024 Silver Collection',
+            'September 2024 Mixed Assets Auction',
+            'August 2024 Luxury Items Sale',
+            'July 2024 Precious Metals Auction',
+            'June 2024 Summer Collection',
+            'May 2024 Spring Jewelry Sale',
+            'April 2024 Easter Special',
+            'February 2025 Valentine Collection',
+            'March 2025 Spring Preview',
+            'April 2025 Easter Jewelry Sale',
         ];
 
         $descriptions = [
@@ -67,59 +59,51 @@ class AuctionSeeder extends Seeder
             'Easter jewelry sale - scheduled for upcoming auction.',
         ];
 
-        // Define auction statuses - only 1 active auction, rest are older statuses
         $statuses = [
-            'active',      // Only 1 live auction
-            'completed',   // Most auctions should be completed
+            'active',
             'completed',
             'completed',
             'completed',
             'completed',
-            'cancelled',   // Some cancelled auctions
+            'completed',
             'cancelled',
-            'rejected',    // Some rejected auctions
+            'cancelled',
             'rejected',
-            'pending_approval', // A few pending approval
-            'scheduled',   // A few scheduled for future
+            'rejected',
+            'pending_approval',
+            'scheduled',
             'scheduled',
         ];
 
-        // Create exactly the number of auctions we have statuses for
         $auctionCount = count($statuses);
 
         for ($i = 0; $i < $auctionCount; $i++) {
-            $status = $statuses[$i]; // Use predefined status order
-
-            // Set appropriate dates based on status
+            $status = $statuses[$i];
             switch ($status) {
                 case 'pending_approval':
-                    $startDate = now()->addDays(rand(7, 21)); // Future dates pending approval
+                    $startDate = now()->addDays(rand(7, 21));
                     $endDate = $startDate->copy()->addDays(rand(3, 7));
                     break;
                 case 'scheduled':
-                    $startDate = now()->addDays(rand(1, 7)); // Near future for scheduled
+                    $startDate = now()->addDays(rand(1, 7));
                     $endDate = $startDate->copy()->addDays(rand(3, 7));
                     break;
                 case 'active':
-                    // THE LIVE AUCTION - currently running
-                    $startDate = now()->subDays(2); // Started 2 days ago
-                    $endDate = now()->addDays(3);   // Ends in 3 days
+                    $startDate = now()->subDays(2);
+                    $endDate = now()->addDays(3);
                     break;
                 case 'completed':
-                    // Past auctions that finished successfully
-                    $daysAgo = rand(7, 90); // Completed 1 week to 3 months ago
+                    $daysAgo = rand(7, 90);
                     $startDate = now()->subDays($daysAgo + rand(3, 7));
                     $endDate = now()->subDays($daysAgo);
                     break;
                 case 'cancelled':
-                    // Past auctions that were cancelled
-                    $daysAgo = rand(5, 60); // Cancelled 5 days to 2 months ago
+                    $daysAgo = rand(5, 60);
                     $startDate = now()->subDays($daysAgo + rand(3, 7));
                     $endDate = now()->subDays($daysAgo);
                     break;
                 case 'rejected':
-                    // Past auctions that were rejected
-                    $daysAgo = rand(10, 120); // Rejected 10 days to 4 months ago
+                    $daysAgo = rand(10, 120);
                     $startDate = now()->subDays($daysAgo + rand(3, 7));
                     $endDate = now()->subDays($daysAgo);
                     break;
@@ -141,29 +125,21 @@ class AuctionSeeder extends Seeder
 
             $this->command->info("Created auction: {$auction->auction_title} ({$status})");
 
-            // Assign collaterals to this auction
             $this->assignCollateralsToAuction($auction, $accounts);
         }
 
         $totalAuctions = Auction::count();
         $this->command->info("Created {$totalAuctions} auctions total");
 
-        // Create additional collaterals with all possible statuses
         $this->createCollateralsWithAllStatuses($accounts);
     }
 
-    /**
-     * Assign existing collaterals to the auction.
-     */
     private function assignCollateralsToAuction(Auction $auction, $accounts): void
     {
-        // Get collaterals that don't have an auction assigned yet
         $availableCollaterals = Collateral::whereNull('auction_id')
             ->where('status', 'active')
             ->take(rand(3, 8))
             ->get();
-
-        // If no available collaterals, create some for this auction
         if ($availableCollaterals->isEmpty()) {
             $this->createCollateralsForAuction($auction, $accounts);
             return;
@@ -179,9 +155,6 @@ class AuctionSeeder extends Seeder
         }
     }
 
-    /**
-     * Create new collaterals for the auction.
-     */
     private function createCollateralsForAuction(Auction $auction, $accounts): void
     {
         $itemTypes = [
@@ -212,14 +185,14 @@ class AuctionSeeder extends Seeder
             $itemIndex = $i % count($itemTypes);
 
             $estimatedValue = rand(500, 5000);
-            $startingBid = $estimatedValue * 0.6; // 60% of estimated value
+            $startingBid = $estimatedValue * 0.6;
 
             $collateral = Collateral::create([
                 'account_id' => $account->id,
                 'auction_id' => $auction->id,
                 'item_type' => $itemTypes[$itemIndex],
                 'description' => $descriptions[$itemIndex],
-                'weight_grams' => rand(5, 50) + (rand(0, 99) / 100), // Random weight between 5-50 grams
+                'weight_grams' => rand(5, 50) + (rand(0, 99) / 100),
                 'purity' => ['18K', '22K', '24K', '925 Silver', '999 Silver'][array_rand(['18K', '22K', '24K', '925 Silver', '999 Silver'])],
                 'estimated_value_rm' => $estimatedValue,
                 'starting_bid_rm' => $startingBid,
@@ -233,43 +206,34 @@ class AuctionSeeder extends Seeder
         }
     }
 
-    /**
-     * Get appropriate collateral status based on auction status.
-     */
     private function getCollateralStatusForAuction(string $auctionStatus): string
     {
-        // Use valid collateral statuses from the schema: draft, pending_approval, active, inactive, rejected
+
         return match ($auctionStatus) {
-            'scheduled' => ['active', 'pending_approval'][array_rand(['active', 'pending_approval'])], // Mix of ready items
-            'active' => 'active',    // Active during auction
-            'completed' => ['active', 'inactive'][array_rand(['active', 'inactive'])], // Mix after completion
-            'cancelled' => ['active', 'inactive', 'draft'][array_rand(['active', 'inactive', 'draft'])], // Various states after cancellation
+            'scheduled' => ['active', 'pending_approval'][array_rand(['active', 'pending_approval'])],
+            'active' => 'active',
+            'completed' => ['active', 'inactive'][array_rand(['active', 'inactive'])],
+            'cancelled' => ['active', 'inactive', 'draft'][array_rand(['active', 'inactive', 'draft'])],
             default => 'active',
         };
     }
 
-    /**
-     * Get current bid amount based on auction status.
-     */
     private function getCurrentBidForAuction(string $auctionStatus, float $startingBid): float
     {
         return match ($auctionStatus) {
-            'active' => $startingBid + rand(50, 500), // Some bids placed
-            'completed' => $startingBid + rand(100, 1000), // Final bid amount
-            default => 0.00, // No bids yet
+            'active' => $startingBid + rand(50, 500),
+            'completed' => $startingBid + rand(100, 1000),
+            default => 0.00,
         };
     }
 
-    /**
-     * Create additional collaterals with all possible statuses to ensure comprehensive coverage.
-     */
     private function createCollateralsWithAllStatuses($accounts): void
     {
-        // Create a special "draft" auction for collaterals that aren't ready for regular auctions
+
         $draftAuction = Auction::create([
             'auction_title' => 'Draft Items Collection',
             'description' => 'Collection of items in various stages of preparation',
-            'start_datetime' => now()->addMonths(6), // Far future
+            'start_datetime' => now()->addMonths(6),
             'end_datetime' => now()->addMonths(6)->addDays(7),
             'status' => 'scheduled',
             'created_by_user_id' => User::where('email', 'admin@arrahnu.com')->first()->id,
@@ -278,7 +242,6 @@ class AuctionSeeder extends Seeder
 
         $this->command->info("Created draft auction for collaterals with various statuses");
 
-        // All possible collateral statuses from the schema
         $allStatuses = ['draft', 'pending_approval', 'active', 'inactive', 'rejected'];
 
         $itemTypes = [
@@ -302,16 +265,14 @@ class AuctionSeeder extends Seeder
             'Rare silver collectible with historical significance'
         ];
 
-        // Create at least 2 collaterals for each status
         foreach ($allStatuses as $statusIndex => $status) {
             for ($i = 0; $i < 2; $i++) {
                 $account = $accounts->random();
                 $itemIndex = ($statusIndex * 2 + $i) % count($itemTypes);
 
                 $estimatedValue = rand(800, 8000);
-                $startingBid = $estimatedValue * (rand(50, 70) / 100); // 50-70% of estimated value
+                $startingBid = $estimatedValue * (rand(50, 70) / 100);
 
-                // For draft and pending_approval, use the draft auction; for others, use random auction
                 $auctionId = in_array($status, ['draft', 'pending_approval']) ?
                     $draftAuction->id :
                     Auction::where('id', '!=', $draftAuction->id)->inRandomOrder()->first()?->id ?? $draftAuction->id;
@@ -321,7 +282,7 @@ class AuctionSeeder extends Seeder
                     'auction_id' => $auctionId,
                     'item_type' => $itemTypes[$itemIndex],
                     'description' => $descriptions[$itemIndex],
-                    'weight_grams' => rand(3, 80) + (rand(0, 99) / 100), // Random weight between 3-80 grams
+                    'weight_grams' => rand(3, 80) + (rand(0, 99) / 100),
                     'purity' => $this->getRandomPurity(),
                     'estimated_value_rm' => $estimatedValue,
                     'starting_bid_rm' => $startingBid,
@@ -339,9 +300,6 @@ class AuctionSeeder extends Seeder
         $this->command->info("Created collaterals with all possible statuses");
     }
 
-    /**
-     * Get random purity value for jewelry items.
-     */
     private function getRandomPurity(): string
     {
         $purities = ['18K', '22K', '24K', '14K', '10K', '925 Silver', '999 Silver', '950 Platinum', '900 Platinum'];

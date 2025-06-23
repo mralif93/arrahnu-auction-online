@@ -10,12 +10,10 @@ use Illuminate\Support\Str;
 
 class BidSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
+
     public function run(): void
     {
-        // Get active collaterals in active auctions for bidding
+
         $activeCollaterals = Collateral::with('auction')
             ->where('status', Collateral::STATUS_ACTIVE)
             ->whereHas('auction', function($query) {
@@ -31,18 +29,17 @@ class BidSeeder extends Seeder
         }
 
         foreach ($activeCollaterals as $collateral) {
-            // Create 3-8 bids per auctioning collateral
+
             $bidCount = rand(3, 8);
             $currentBid = $collateral->starting_bid_rm;
 
             for ($i = 0; $i < $bidCount; $i++) {
                 $bidder = $bidders->random();
-                $bidIncrement = rand(10, 100); // RM 10-100 increment
+                $bidIncrement = rand(10, 100);
                 $currentBid += $bidIncrement;
 
-                // Get bid time based on auction start time
                 $auctionStartTime = $collateral->auction->start_datetime;
-                $bidTime = $auctionStartTime->copy()->addMinutes(rand(10, 1440)); // Random time during auction
+                $bidTime = $auctionStartTime->copy()->addMinutes(rand(10, 1440));
 
                 $status = ($i === $bidCount - 1) ? Bid::STATUS_WINNING :
                          (rand(1, 100) <= 90 ? Bid::STATUS_OUTBID : Bid::STATUS_ACTIVE);
@@ -58,14 +55,12 @@ class BidSeeder extends Seeder
                 ]);
             }
 
-            // Update collateral with highest bid
             $collateral->update([
                 'current_highest_bid_rm' => $currentBid,
                 'highest_bidder_user_id' => $bidders->random()->id,
             ]);
         }
 
-        // Create some bids for active collaterals in scheduled auctions (pre-bids)
         $scheduledCollaterals = Collateral::with('auction')
             ->where('status', Collateral::STATUS_ACTIVE)
             ->whereHas('auction', function($query) {

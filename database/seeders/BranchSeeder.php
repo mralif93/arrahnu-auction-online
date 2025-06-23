@@ -9,9 +9,6 @@ use Illuminate\Support\Str;
 
 class BranchSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $admin = User::where('username', 'admin')->first();
@@ -70,19 +67,17 @@ class BranchSeeder extends Seeder
         ];
 
         foreach ($branches as $branchData) {
-            // Create branch address first
             $branchAddress = \App\Models\BranchAddress::create([
                 'id' => Str::uuid(),
-                'branch_id' => null, // Will be set after branch creation
+                'branch_id' => null,
                 'address_line_1' => $branchData['address'],
                 'address_line_2' => null,
-                'city' => 'Kuala Lumpur', // Default city
-                'state' => 'Selangor', // Default state
-                'postcode' => '50000', // Default postcode
+                'city' => 'Kuala Lumpur',
+                'state' => 'Selangor',
+                'postcode' => '50000',
                 'country' => 'Malaysia',
             ]);
 
-            // Create branch
             $branch = Branch::create([
                 'id' => Str::uuid(),
                 'name' => $branchData['name'],
@@ -93,7 +88,6 @@ class BranchSeeder extends Seeder
                 'approved_by_user_id' => $branchData['status'] === Branch::STATUS_ACTIVE ? $checker->id : null,
             ]);
 
-            // Update branch address with branch_id
             $branchAddress->update(['branch_id' => $branch->id]);
         }
 

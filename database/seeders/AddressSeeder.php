@@ -9,9 +9,6 @@ use Illuminate\Support\Str;
 
 class AddressSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $users = User::all();
@@ -62,7 +59,6 @@ class AddressSeeder extends Seeder
             $city = $cityOptions[array_rand($cityOptions)];
             $street = $streetNames[array_rand($streetNames)];
             
-            // Create primary address
             $primaryAddress = Address::create([
                 'id' => Str::uuid(),
                 'user_id' => $user->id,
@@ -75,10 +71,7 @@ class AddressSeeder extends Seeder
                 'is_primary' => true,
             ]);
 
-            // Update user's primary address
             $user->update(['primary_address_id' => $primaryAddress->id]);
-
-            // 30% chance to create a secondary address
             if (rand(1, 100) <= 30) {
                 $secondaryState = $malaysianStates[array_rand($malaysianStates)];
                 $secondaryCityOptions = $cities[$secondaryState] ?? [$secondaryState];

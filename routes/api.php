@@ -25,14 +25,15 @@ use App\Http\Controllers\Api\DashboardController;
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/2fa/verify', [AuthController::class, 'verify2FA']);
-    Route::post('/2fa/resend', [AuthController::class, 'resend2FA']);
+    Route::get('/verify-email/{token}', [AuthController::class, 'verifyEmail']);
+    Route::post('/resend-verification', [AuthController::class, 'resendVerificationEmail']);
+    Route::post('/verification-status', [AuthController::class, 'getVerificationStatus']);
+    
     Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
     Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 });
 
-// Alternative 2FA verification route (as requested)
-Route::post('/verify/2fa', [AuthController::class, 'verify2FA']);
+
 
 // ============================================================================
 // PROTECTED API ROUTES (Authentication Required)
@@ -148,7 +149,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('settings')->group(function () {
             Route::get('/', [App\Http\Controllers\Admin\SettingsController::class, 'getSettings']);
             Route::post('/update', [App\Http\Controllers\Admin\SettingsController::class, 'updateSettings']);
-            Route::post('/toggle-2fa', [App\Http\Controllers\Admin\SettingsController::class, 'toggle2FA']);
+    
             Route::post('/reset', [App\Http\Controllers\Admin\SettingsController::class, 'resetToDefaults']);
             Route::get('/system-status', [App\Http\Controllers\Admin\SettingsController::class, 'getSystemStatus']);
         });
@@ -190,9 +191,7 @@ Route::get('/info', function () {
                 'auth' => [
                     'POST /api/auth/register' => 'Register new user',
                     'POST /api/auth/login' => 'Login user',
-                    'POST /api/auth/2fa/verify' => 'Verify 2FA code',
-                    'POST /api/verify/2fa' => 'Verify 2FA code (alternative route)',
-                    'POST /api/auth/2fa/resend' => 'Resend 2FA code',
+                    
                     'POST /api/auth/forgot-password' => 'Send password reset link',
                     'POST /api/auth/reset-password' => 'Reset password with token',
                     'POST /api/auth/logout' => 'Logout user (requires auth)',
@@ -267,7 +266,7 @@ Route::get('/info', function () {
             'authentication' => [
                 'type' => 'Bearer Token (Laravel Sanctum)',
                 'header' => 'Authorization: Bearer {token}',
-                '2fa' => 'Two-Factor Authentication supported'
+
             ]
         ]
     ]);

@@ -4,20 +4,12 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Services\TwoFactorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
-    protected TwoFactorService $twoFactorService;
-
-    public function __construct(TwoFactorService $twoFactorService)
-    {
-        $this->twoFactorService = $twoFactorService;
-    }
 
     /**
      * Show the application's login form.
@@ -40,41 +32,51 @@ class LoginController extends Controller
         $credentials = $request->only('email', 'password');
         $remember = $request->boolean('remember');
 
-        // Attempt to authenticate user without logging them in
-        if (Auth::validate($credentials)) {
-            // Make sure user is not logged in yet
-            Auth::logout();
+        // Find user for additional checks
+        $user = User::where('email', $request->email)->first();
+        
+        if ($user) {
+            // Increment login attempts
+            $user->incrementLoginAttempts();
 
-            $user = User::where('email', $request->email)->first();
-
-            // Check if user is active
-            if ($user->status !== 'active') {
+            // Check if account is locked
+            if ($user->isAccountLocked()) {
                 throw ValidationException::withMessages([
-                    'email' => 'Your account is not active. Please contact support.',
+                    'email' => 'Account is temporarily locked due to multiple failed login attempts. Please try again later.',
+                ]);
+            }
+        }
+
+        // Attempt to authenticate user
+        if (Auth::attempt($credentials, $remember)) {
+            $user = Auth::user();
+
+            // Check if user can login (includes all verification and approval checks)
+            if (!$user->canLogin()) {
+                Auth::logout();
+                
+                $message = 'Your account is not ready for login. ';
+                if ($user->requiresEmailVerification()) {
+                    $message = 'Please verify your email address before logging in. Check your email for verification instructions.';
+                } elseif ($user->requiresAdminApproval()) {
+                    $message = 'Your account is pending admin approval. You will be notified once approved.';
+                } elseif ($user->status === User::STATUS_REJECTED) {
+                    $message = 'Your account application has been rejected. Please contact support for more information.';
+                } elseif ($user->status !== User::STATUS_ACTIVE) {
+                    $message = 'Your account is not active. Please contact support.';
+                }
+                
+                throw ValidationException::withMessages([
+                    'email' => $message,
                 ]);
             }
 
-            // Check if 2FA is enabled for this user
-            if ($this->twoFactorService->isEnabled()) {
-                // Store user ID and remember preference in session for 2FA
-                Session::put('2fa_user_id', $user->id);
-                Session::put('2fa_remember', $remember);
-
-                // Generate and send 2FA code
-                if ($this->twoFactorService->generateAndSendCode($user)) {
-                    return redirect()->route('2fa.show')
-                        ->with('success', 'A verification code has been sent to your email.');
-                } else {
-                    return back()->with('error', 'Failed to send verification code. Please try again.');
-                }
-            }
-
-            // If 2FA is disabled, log in normally
-            Auth::login($user, $remember);
             $request->session()->regenerate();
 
-            // Update last login time
-            $user->update(['last_login_at' => now()]);
+            // Update login tracking
+            $ipAddress = $request->ip();
+            $userAgent = $request->userAgent();
+            $user->updateLoginTracking(User::LOGIN_SOURCE_WEB, $ipAddress, $userAgent);
 
             return redirect()->intended($user->is_admin ? '/admin/dashboard' : '/dashboard');
         }

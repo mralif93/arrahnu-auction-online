@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\AuctionResult;
+use App\Models\Bid;
 use App\Models\Collateral;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -10,25 +11,33 @@ use Illuminate\Support\Str;
 
 class AuctionResultSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Get active collaterals from completed auctions that don't have auction results yet
-        $completedAuctionCollaterals = Collateral::with('auction')
+        $completedAuctionCollaterals = Collateral::with(['auction', 'bids'])
                                     ->where('status', Collateral::STATUS_ACTIVE)
                                     ->whereHas('auction', function($query) {
                                         $query->where('status', 'completed');
                                     })
-                                    ->whereNotNull('current_highest_bid_rm')
-                                    ->where('current_highest_bid_rm', '>', 0)
+                                                                         ->whereHas('bids')
                                     ->whereDoesntHave('auctionResult')
                                     ->get();
 
-        $bidders = User::where('role', User::ROLE_BIDDER)->get();
-
         foreach ($completedAuctionCollaterals as $collateral) {
+            $winningBid = $collateral->bids()
+                                   ->orderBy('bid_amount_rm', 'desc')
+                                   ->orderBy('bid_time', 'asc')
+                                   ->first();
+
+            if (!$winningBid) {
+                continue;
+            }
+            if (!$collateral->highest_bidder_user_id) {
+                $collateral->update([
+                    'highest_bidder_user_id' => $winningBid->user_id,
+                    'current_highest_bid_rm' => $winningBid->bid_amount_rm,
+                ]);
+            }
+
             $paymentStatus = rand(1, 100) <= 80 ? AuctionResult::PAYMENT_PAID : 
                            (rand(1, 100) <= 70 ? AuctionResult::PAYMENT_PENDING : AuctionResult::PAYMENT_CANCELLED);
             
@@ -45,31 +54,49 @@ class AuctionResultSeeder extends Seeder
             AuctionResult::create([
                 'id' => Str::uuid(),
                 'collateral_id' => $collateral->id,
-                'winner_user_id' => $collateral->highest_bidder_user_id,
-                'winning_bid_amount' => $collateral->current_highest_bid_rm,
-                'auction_end_time' => $collateral->auction_end_datetime ?? now()->subDays(rand(1, 30)),
+                'winner_user_id' => $winningBid->user_id,
+                'winning_bid_amount' => $winningBid->bid_amount_rm,
+                'winning_bid_id' => $winningBid->id,
+                'auction_end_time' => $collateral->auction->end_datetime ?? now()->subDays(rand(1, 30)),
                 'payment_status' => $paymentStatus,
                 'delivery_status' => $deliveryStatus,
                 'result_status' => $resultStatus,
             ]);
+
+            $winningBid->update(['status' => 'successful']);
+            $collateral->bids()->where('id', '!=', $winningBid->id)->update(['status' => 'unsuccessful']);
         }
 
-        // Create some auction results for additional collaterals from completed auctions
         $additionalCompletedCollaterals = Collateral::with('auction')
                                                ->where('status', Collateral::STATUS_ACTIVE)
                                                ->whereHas('auction', function($query) {
                                                    $query->where('status', 'completed');
                                                })
-                                               ->whereNull('highest_bidder_user_id')
+                                               ->whereDoesntHave('bids')
                                                ->whereDoesntHave('auctionResult')
-                                               ->take(5)
+                                               ->take(3)
                                                ->get();
 
+        $bidders = User::where('role', User::ROLE_BIDDER)->get();
+
         foreach ($additionalCompletedCollaterals as $collateral) {
+            if ($bidders->isEmpty()) {
+                continue;
+            }
+
             $winner = $bidders->random();
             $winningAmount = $collateral->starting_bid_rm + rand(100, 1000);
             
-            // Update the collateral with winner info
+            $winningBid = Bid::create([
+                'id' => Str::uuid(),
+                'collateral_id' => $collateral->id,
+                'user_id' => $winner->id,
+                'bid_amount_rm' => $winningAmount,
+                'bid_time' => now()->subDays(rand(1, 15)),
+                'status' => 'successful',
+                'ip_address' => '127.0.0.1',
+            ]);
+
             $collateral->update([
                 'highest_bidder_user_id' => $winner->id,
                 'current_highest_bid_rm' => $winningAmount,
@@ -80,6 +107,7 @@ class AuctionResultSeeder extends Seeder
                 'collateral_id' => $collateral->id,
                 'winner_user_id' => $winner->id,
                 'winning_bid_amount' => $winningAmount,
+                'winning_bid_id' => $winningBid->id,
                 'auction_end_time' => now()->subDays(rand(1, 15)),
                 'payment_status' => AuctionResult::PAYMENT_PAID,
                 'delivery_status' => AuctionResult::DELIVERY_DELIVERED,

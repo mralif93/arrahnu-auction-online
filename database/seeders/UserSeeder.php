@@ -9,17 +9,14 @@ use Illuminate\Support\Str;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // Create Admin User
         $admin = User::create([
             'id' => Str::uuid(),
             'username' => 'admin',
             'password_hash' => Hash::make('password'),
             'email' => 'admin@arrahnu.com',
+            'email_verified_at' => now(),
             'is_email_verified' => true,
             'full_name' => 'System Administrator',
             'phone_number' => '+60123456789',
@@ -30,14 +27,17 @@ class UserSeeder extends Seeder
             'is_staff' => true,
             'first_login_at' => now(),
             'last_login_at' => now(),
+            'requires_admin_approval' => false,
+            'email_verification_required' => false,
+            'approved_at' => now(),
         ]);
 
-        // Create Maker User
         $maker = User::create([
             'id' => Str::uuid(),
             'username' => 'maker01',
             'password_hash' => Hash::make('password'),
             'email' => 'maker@arrahnu.com',
+            'email_verified_at' => now(),
             'is_email_verified' => true,
             'full_name' => 'Ahmad Maker',
             'phone_number' => '+60123456788',
@@ -50,14 +50,17 @@ class UserSeeder extends Seeder
             'approved_by_user_id' => $admin->id,
             'first_login_at' => now(),
             'last_login_at' => now(),
+            'requires_admin_approval' => false,
+            'email_verification_required' => false,
+            'approved_at' => now(),
         ]);
 
-        // Create Checker User
         $checker = User::create([
             'id' => Str::uuid(),
             'username' => 'checker01',
             'password_hash' => Hash::make('password'),
             'email' => 'checker@arrahnu.com',
+            'email_verified_at' => now(),
             'is_email_verified' => true,
             'full_name' => 'Siti Checker',
             'phone_number' => '+60123456787',
@@ -70,9 +73,11 @@ class UserSeeder extends Seeder
             'approved_by_user_id' => $admin->id,
             'first_login_at' => now(),
             'last_login_at' => now(),
+            'requires_admin_approval' => false,
+            'email_verification_required' => false,
+            'approved_at' => now(),
         ]);
 
-        // Create Test Bidder Users
         $bidders = [];
         for ($i = 1; $i <= 5; $i++) {
             $bidders[] = User::create([
@@ -80,6 +85,7 @@ class UserSeeder extends Seeder
                 'username' => "bidder" . str_pad($i, 2, '0', STR_PAD_LEFT),
                 'password_hash' => Hash::make('password'),
                 'email' => "bidder{$i}@example.com",
+                'email_verified_at' => now(),
                 'is_email_verified' => true,
                 'full_name' => "Bidder User {$i}",
                 'phone_number' => "+6012345678{$i}",
@@ -92,15 +98,18 @@ class UserSeeder extends Seeder
                 'approved_by_user_id' => $checker->id,
                 'first_login_at' => now()->subDays(rand(1, 30)),
                 'last_login_at' => now()->subHours(rand(1, 24)),
+                'requires_admin_approval' => false,
+                'email_verification_required' => false,
+                'approved_at' => now(),
             ]);
         }
 
-        // Create Demo User (for testing)
         User::create([
             'id' => Str::uuid(),
             'username' => 'demo',
             'password_hash' => Hash::make('password'),
             'email' => 'demo@arrahnu.com',
+            'email_verified_at' => now(),
             'is_email_verified' => true,
             'full_name' => 'Demo User',
             'phone_number' => '+60123456780',
@@ -113,15 +122,18 @@ class UserSeeder extends Seeder
             'approved_by_user_id' => $checker->id,
             'first_login_at' => now(),
             'last_login_at' => now(),
+            'requires_admin_approval' => false,
+            'email_verification_required' => false,
+            'approved_at' => now(),
         ]);
 
-        // Create some pending approval users
         for ($i = 1; $i <= 3; $i++) {
             User::create([
                 'id' => Str::uuid(),
                 'username' => "pending" . str_pad($i, 2, '0', STR_PAD_LEFT),
                 'password_hash' => Hash::make('password'),
                 'email' => "pending{$i}@example.com",
+                'email_verified_at' => null,
                 'is_email_verified' => false,
                 'full_name' => "Pending User {$i}",
                 'phone_number' => "+6012345679{$i}",
@@ -131,6 +143,9 @@ class UserSeeder extends Seeder
                 'is_admin' => false,
                 'is_staff' => false,
                 'created_by_user_id' => $maker->id,
+                'requires_admin_approval' => true,
+                'email_verification_required' => true,
+                'verification_token_expires_at' => now()->addDays(1),
             ]);
         }
 

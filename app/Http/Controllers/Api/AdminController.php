@@ -8,7 +8,6 @@ use App\Models\Branch;
 use App\Models\Account;
 use App\Models\Collateral;
 use App\Models\Auction;
-use App\Models\TwoFactorCode;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -300,7 +299,7 @@ class AdminController extends Controller
             'total_accounts' => Account::count(),
             'total_collaterals' => Collateral::count(),
             'total_auctions' => Auction::count(),
-            'active_2fa_codes' => TwoFactorCode::where('expires_at', '>', now())->count()
+            'active_2fa_codes' => 0 // Two-factor authentication removed
         ];
     }
 
@@ -531,12 +530,8 @@ class AdminController extends Controller
      */
     private function getRecent2FACodes(): array
     {
-        return TwoFactorCode::with('user:id,full_name,email')
-            ->latest()
-            ->limit(5)
-            ->select('id', 'user_id', 'created_at', 'expires_at', 'attempts')
-            ->get()
-            ->toArray();
+        // Two-factor authentication has been removed
+        return [];
     }
 
     /**

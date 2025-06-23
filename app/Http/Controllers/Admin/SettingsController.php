@@ -39,17 +39,12 @@ class SettingsController extends Controller
     public function updateSettings(Request $request)
     {
         $request->validate([
-            'two_factor_enabled' => 'required|boolean',
-            'two_factor_code_expiry' => 'required|integer|min:300|max:3600', // 5 minutes to 1 hour
             'session_lifetime' => 'nullable|integer|min:60|max:43200', // 1 minute to 12 hours
             'max_login_attempts' => 'nullable|integer|min:3|max:10',
             'lockout_duration' => 'nullable|integer|min:60|max:3600', // 1 minute to 1 hour
         ]);
 
         try {
-            // Update 2FA settings
-            $this->updateEnvValue('TWO_FACTOR_ENABLED', $request->two_factor_enabled ? 'true' : 'false');
-            $this->updateEnvValue('TWO_FACTOR_CODE_EXPIRY', $request->two_factor_code_expiry);
 
             // Update session settings if provided
             if ($request->has('session_lifetime')) {
@@ -76,36 +71,7 @@ class SettingsController extends Controller
         }
     }
 
-    /**
-     * Toggle 2FA feature on/off.
-     */
-    public function toggle2FA(Request $request)
-    {
-        $request->validate([
-            'enabled' => 'required|boolean'
-        ]);
 
-        try {
-            $enabled = $request->boolean('enabled');
-            
-            // Update environment variable
-            $this->updateEnvValue('TWO_FACTOR_ENABLED', $enabled ? 'true' : 'false');
-            
-            // Clear config cache
-            Artisan::call('config:clear');
-            Cache::forget('system_settings');
-
-            $message = $enabled ? '2FA has been enabled' : '2FA has been disabled';
-            
-            return $this->successResponse($message, [
-                'two_factor_enabled' => $enabled,
-                'updated_at' => now()->toISOString()
-            ]);
-
-        } catch (\Exception $e) {
-            return $this->errorResponse('Failed to toggle 2FA: ' . $e->getMessage(), 500);
-        }
-    }
 
     /**
      * Get system settings from various sources.
@@ -115,8 +81,6 @@ class SettingsController extends Controller
         return Cache::remember('system_settings', 300, function () {
             return [
                 'security' => [
-                    'two_factor_enabled' => env('TWO_FACTOR_ENABLED', true),
-                    'two_factor_code_expiry' => env('TWO_FACTOR_CODE_EXPIRY', 750),
                     'session_lifetime' => env('SESSION_LIFETIME', 120),
                     'max_login_attempts' => env('LOGIN_MAX_ATTEMPTS', 5),
                     'lockout_duration' => env('LOGIN_LOCKOUT_DURATION', 300),
@@ -196,8 +160,6 @@ class SettingsController extends Controller
     {
         try {
             // Default security settings
-            $this->updateEnvValue('TWO_FACTOR_ENABLED', 'true');
-            $this->updateEnvValue('TWO_FACTOR_CODE_EXPIRY', '750');
             $this->updateEnvValue('SESSION_LIFETIME', '120');
             $this->updateEnvValue('LOGIN_MAX_ATTEMPTS', '5');
             $this->updateEnvValue('LOGIN_LOCKOUT_DURATION', '300');

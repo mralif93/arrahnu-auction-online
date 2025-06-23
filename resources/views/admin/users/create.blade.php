@@ -230,6 +230,59 @@
                             </p>
                         </div>
 
+                        <!-- Permissions & Security Options -->
+                        <div>
+                            <label class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-4">
+                                Permissions & Security
+                            </label>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <!-- Admin Privileges -->
+                                <div class="bg-gray-50 dark:bg-[#1a1a19] rounded-lg p-4 border border-[#e3e3e0] dark:border-[#3E3E3A]">
+                                    <div class="flex items-start space-x-3">
+                                        <input type="checkbox" 
+                                               id="is_admin" 
+                                               name="is_admin" 
+                                               value="1"
+                                               {{ old('is_admin') ? 'checked' : '' }}
+                                               class="mt-1 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
+                                        <div class="flex-1">
+                                            <label for="is_admin" class="text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC] cursor-pointer">
+                                                Administrator
+                                            </label>
+                                            <p class="text-xs text-[#706f6c] dark:text-[#A1A09A] mt-1">
+                                                Full system access and user management privileges
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Staff Status -->
+                                <div class="bg-gray-50 dark:bg-[#1a1a19] rounded-lg p-4 border border-[#e3e3e0] dark:border-[#3E3E3A]">
+                                    <div class="flex items-start space-x-3">
+                                        <input type="checkbox" 
+                                               id="is_staff" 
+                                               name="is_staff" 
+                                               value="1"
+                                               {{ old('is_staff') ? 'checked' : '' }}
+                                               class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                                        <div class="flex-1">
+                                            <label for="is_staff" class="text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC] cursor-pointer">
+                                                Staff Member
+                                            </label>
+                                            <p class="text-xs text-[#706f6c] dark:text-[#A1A09A] mt-1">
+                                                Enhanced access to staff functions and reports
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                            <p class="mt-3 text-xs text-[#706f6c] dark:text-[#A1A09A]">
+                                Configure user permissions and security settings
+                            </p>
+                        </div>
+
                         <!-- Password Fields -->
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <!-- Password -->

@@ -112,21 +112,6 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
-    /*
-    |--------------------------------------------------------------------------
-    | Two-Factor Authentication
-    |--------------------------------------------------------------------------
-    |
-    | Here you may configure the two-factor authentication settings for your
-    | application. This includes enabling/disabling 2FA, code expiry time,
-    | and maximum verification attempts.
-    |
-    */
 
-    'two_factor' => [
-        'enabled' => env('TWO_FACTOR_ENABLED', false),
-        'code_expiry' => env('TWO_FACTOR_CODE_EXPIRY', 750), // seconds (12.5 minutes)
-        'max_attempts' => env('TWO_FACTOR_MAX_ATTEMPTS', 3),
-    ],
 
 ];

@@ -61,21 +61,5 @@ trait ApiResponse
         ], $message);
     }
 
-    /**
-     * Return a 2FA required response with session token.
-     */
-    protected function twoFactorResponse($user, string $sessionToken, int $expiresIn): JsonResponse
-    {
-        return response()->json([
-            'success' => true,
-            'message' => 'A verification code has been sent to your email.',
-            'requires_2fa' => true,
-            'data' => [
-                'user_id' => $user->id,
-                'email' => $user->email,
-                'session_token' => $sessionToken,
-                'expires_in' => $expiresIn
-            ]
-        ]);
-    }
+
 } 

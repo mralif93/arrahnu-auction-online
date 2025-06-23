@@ -10,9 +10,6 @@ use Illuminate\Support\Str;
 
 class AccountSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $activeBranches = Branch::where('status', Branch::STATUS_ACTIVE)->get();
@@ -56,7 +53,7 @@ class AccountSeeder extends Seeder
         ];
 
         foreach ($activeBranches as $branch) {
-            // Create 3-6 asset groupings per active branch
+
             $accountCount = rand(3, 6);
 
             for ($i = 0; $i < $accountCount; $i++) {
@@ -78,10 +75,9 @@ class AccountSeeder extends Seeder
             }
         }
 
-        // Create some specific test accounts
         $klBranch = Branch::where('name', 'Arrahnu Kuala Lumpur')->first();
         if ($klBranch) {
-            // High-value account
+
             Account::create([
                 'id' => Str::uuid(),
                 'branch_id' => $klBranch->id,
@@ -92,7 +88,6 @@ class AccountSeeder extends Seeder
                 'approved_by_user_id' => $checker->id,
             ]);
 
-            // Mixed metals account
             Account::create([
                 'id' => Str::uuid(),
                 'branch_id' => $klBranch->id,

@@ -32,6 +32,7 @@ return new class extends Migration
             $table->string('locked_device_identifier', 255)->unique()->nullable();
             $table->timestampTz('first_login_at')->nullable();
             $table->timestampTz('last_login_at')->nullable();
+            $table->string('remember_token', 100)->nullable();
             $table->string('reset_password_token', 255)->unique()->nullable();
             $table->timestampTz('reset_password_expires_at')->nullable();
             $table->uuid('created_by_user_id')->nullable();

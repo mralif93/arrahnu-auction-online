@@ -8,7 +8,7 @@ use App\Models\Branch;
 use App\Models\Account;
 use App\Models\Collateral;
 use App\Models\Auction;
-use App\Models\TwoFactorCode;
+
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -241,7 +241,7 @@ class DashboardController extends Controller
             'new_users_today' => User::whereDate('created_at', today())->count(),
             'new_auctions_today' => Auction::whereDate('created_at', today())->count(),
             'logins_today' => User::whereDate('last_login_at', today())->count(),
-            'active_2fa_sessions' => TwoFactorCode::where('expires_at', '>', now())->count(),
+            'active_2fa_sessions' => 0, // Two-factor authentication removed
             'recent_registrations' => User::latest()->limit(5)->select('id', 'full_name', 'email', 'created_at')->get(),
             'recent_auctions' => Auction::latest()->limit(5)->select('id', 'title', 'status', 'created_at')->get()
         ];
@@ -673,7 +673,7 @@ class DashboardController extends Controller
     private function getSecurityMetrics(): array
     {
         return [
-            'active_sessions' => TwoFactorCode::where('expires_at', '>', now())->count(),
+            'active_sessions' => 0, // Two-factor authentication removed
             'failed_logins_today' => 0, // Would need to implement login attempt tracking
             'admin_users' => User::where('is_admin', true)->count(),
             'pending_approvals' => User::where('status', User::STATUS_PENDING_APPROVAL)->count(),

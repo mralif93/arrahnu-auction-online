@@ -14,7 +14,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
-use App\Http\Controllers\Auth\TwoFactorController;
+
 
 
 /*
@@ -69,7 +69,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/', [App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('index');
         Route::get('/data', [App\Http\Controllers\Admin\SettingsController::class, 'getSettings'])->name('data');
         Route::post('/update', [App\Http\Controllers\Admin\SettingsController::class, 'updateSettings'])->name('update');
-        Route::post('/toggle-2fa', [App\Http\Controllers\Admin\SettingsController::class, 'toggle2FA'])->name('toggle-2fa');
+    
         Route::post('/reset', [App\Http\Controllers\Admin\SettingsController::class, 'resetToDefaults'])->name('reset');
         Route::get('/system-status', [App\Http\Controllers\Admin\SettingsController::class, 'getSystemStatus'])->name('system-status');
     });
@@ -87,6 +87,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('/{user}/approve', [AdminUserController::class, 'approve'])->name('approve');
         Route::post('/{user}/reject', [AdminUserController::class, 'reject'])->name('reject');
         Route::post('/{user}/toggle-admin', [AdminUserController::class, 'toggleAdmin'])->name('toggle-admin');
+        
+        // Email verification management
+        Route::post('/{user}/verify-email', [AdminUserController::class, 'verifyEmail'])->name('verify-email');
+        Route::post('/{user}/send-verification-email', [AdminUserController::class, 'sendVerificationEmail'])->name('send-verification-email');
+        Route::post('/{user}/reset-email-verification', [AdminUserController::class, 'resetEmailVerification'])->name('reset-email-verification');
+        Route::get('/{user}/verification-status', [AdminUserController::class, 'getVerificationStatus'])->name('verification-status');
+
         Route::delete('/{user}', [AdminUserController::class, 'destroy'])->name('delete');
     });
 
@@ -225,6 +232,18 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
     Route::post('/register', [RegisterController::class, 'register']);
 
+    // Email verification routes
+    Route::get('/verify-email/{token}', function ($token) {
+        $emailVerificationService = app(\App\Services\EmailVerificationService::class);
+        $result = $emailVerificationService->verifyEmail($token);
+        
+        if ($result['success']) {
+            return redirect()->route('login')->with('success', $result['message']);
+        } else {
+            return redirect()->route('login')->withErrors(['email' => $result['message']]);
+        }
+    })->name('verify-email');
+
     // Password Reset Routes
     Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
     Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
@@ -233,13 +252,7 @@ Route::middleware('guest')->group(function () {
 
 });
 
-// Two-Factor Authentication Routes (With custom 2FA guest middleware)
-Route::middleware('2fa.guest')->group(function () {
-    Route::get('/2fa/verify', [TwoFactorController::class, 'show'])->name('2fa.show');
-    Route::post('/2fa/verify', [TwoFactorController::class, 'verify'])->name('2fa.verify');
-    Route::post('/2fa/resend', [TwoFactorController::class, 'resend'])->name('2fa.resend');
-    Route::get('/2fa/cancel', [TwoFactorController::class, 'cancel'])->name('2fa.cancel');
-});
+
 
 // Logout Route (Authenticated Users Only)
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout')->middleware('auth');

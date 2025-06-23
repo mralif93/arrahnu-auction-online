@@ -12,9 +12,7 @@ use Illuminate\Support\Str;
 
 class AuditLogSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
+
     public function run(): void
     {
         $users = User::all();
@@ -33,18 +31,16 @@ class AuditLogSeeder extends Seeder
 
         $modules = ['users', 'branches', 'accounts', 'collaterals', 'bids', 'system'];
 
-        // Create 50 sample audit log entries
         for ($i = 0; $i < 50; $i++) {
             $user = $users->random();
             $action = $actions[array_rand($actions)];
             $module = $modules[array_rand($modules)];
-            
+
             $recordId = null;
             $oldData = null;
             $newData = null;
             $description = null;
 
-            // Generate realistic data based on action and module
             switch ($module) {
                 case 'users':
                     $recordId = $users->random()->id;

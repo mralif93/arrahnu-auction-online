@@ -868,7 +868,7 @@ function toggleFullscreen() {
 
     if (!document.fullscreenElement) {
         modal.requestFullscreen().catch(err => {
-            console.log('Error attempting to enable fullscreen:', err);
+                            // Error attempting to enable fullscreen
         });
     } else {
         document.exitFullscreen();

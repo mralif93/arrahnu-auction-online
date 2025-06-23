@@ -56,42 +56,8 @@
         </div>
 
         <div class="space-y-6">
-            <!-- 2FA Toggle -->
-            <div class="flex items-center justify-between p-4 bg-[#f8f8f7] dark:bg-[#1a1a19] rounded-lg">
-                <div class="flex-1">
-                    <div class="flex items-center">
-                        <h3 class="text-base font-medium text-[#1b1b18] dark:text-[#EDEDEC]">Two-Factor Authentication</h3>
-                        <span id="2faStatus" class="ml-3 px-2 py-1 text-xs font-medium rounded-full {{ $settings['security']['two_factor_enabled'] ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400' }}">
-                            {{ $settings['security']['two_factor_enabled'] ? 'Enabled' : 'Disabled' }}
-                        </span>
-                    </div>
-                    <p class="text-sm text-[#706f6c] dark:text-[#A1A09A] mt-1">
-                        Require users to verify their identity with a second factor during login
-                    </p>
-                </div>
-                <div class="flex items-center">
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="twoFactorEnabled" class="sr-only peer" {{ $settings['security']['two_factor_enabled'] ? 'checked' : '' }} onchange="toggle2FA(this.checked)">
-                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand/20 dark:peer-focus:ring-brand/30 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-brand"></div>
-                    </label>
-                </div>
-            </div>
-
-            <!-- 2FA Code Expiry -->
+            <!-- Session and Security Settings -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label for="twoFactorCodeExpiry" class="block text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC] mb-2">
-                        2FA Code Expiry (seconds)
-                    </label>
-                    <input type="number" id="twoFactorCodeExpiry" name="two_factor_code_expiry" 
-                           value="{{ $settings['security']['two_factor_code_expiry'] }}" 
-                           min="300" max="3600" step="30"
-                           class="w-full px-3 py-2 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded-lg bg-white dark:bg-[#161615] text-[#1b1b18] dark:text-[#EDEDEC] focus:ring-2 focus:ring-brand/20 focus:border-brand transition-colors">
-                    <p class="text-xs text-[#706f6c] dark:text-[#A1A09A] mt-1">
-                        Current: {{ floor($settings['security']['two_factor_code_expiry'] / 60) }} minutes {{ $settings['security']['two_factor_code_expiry'] % 60 }} seconds
-                    </p>
-                </div>
-
                 <div>
                     <label for="sessionLifetime" class="block text-sm font-medium text-[#1b1b18] dark:text-[#EDEDEC] mb-2">
                         Session Lifetime (minutes)
@@ -221,52 +187,14 @@ function showMessage(type, message) {
     }, 5000);
 }
 
-// Toggle 2FA
-async function toggle2FA(enabled) {
-    showLoading();
-    
-    try {
-        const response = await fetch('{{ route("admin.settings.toggle-2fa") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrfToken
-            },
-            body: JSON.stringify({ enabled: enabled })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            // Update status badge
-            const statusBadge = document.getElementById('2faStatus');
-            statusBadge.textContent = enabled ? 'Enabled' : 'Disabled';
-            statusBadge.className = enabled 
-                ? 'ml-3 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                : 'ml-3 px-2 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-            
-            showMessage('success', data.message);
-        } else {
-            // Revert checkbox if failed
-            document.getElementById('twoFactorEnabled').checked = !enabled;
-            showMessage('error', data.message || 'Failed to toggle 2FA');
-        }
-    } catch (error) {
-        // Revert checkbox if failed
-        document.getElementById('twoFactorEnabled').checked = !enabled;
-        showMessage('error', 'Network error occurred');
-    } finally {
-        hideLoading();
-    }
-}
+
+
 
 // Save Settings
 async function saveSettings() {
     showLoading();
     
     const formData = {
-        two_factor_enabled: document.getElementById('twoFactorEnabled').checked,
-        two_factor_code_expiry: parseInt(document.getElementById('twoFactorCodeExpiry').value),
         session_lifetime: parseInt(document.getElementById('sessionLifetime').value),
         max_login_attempts: parseInt(document.getElementById('maxLoginAttempts').value),
         lockout_duration: parseInt(document.getElementById('lockoutDuration').value)

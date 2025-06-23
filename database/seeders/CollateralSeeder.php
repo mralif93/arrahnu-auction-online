@@ -12,9 +12,7 @@ use Illuminate\Support\Str;
 
 class CollateralSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
+
     public function run(): void
     {
         $activeAccounts = Account::where('status', Account::STATUS_ACTIVE)->get();
@@ -44,27 +42,26 @@ class CollateralSeeder extends Seeder
         ];
 
         $sampleImageUrls = [
-            'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400',
-            'https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=400',
-            'https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400',
-            'https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=400',
-            'https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=400'
+            'https://via.placeholder.com/800x600/FFD700/000000?text=Gold+Jewelry',
+            'https://via.placeholder.com/800x600/C0C0C0/000000?text=Silver+Item',
+            'https://via.placeholder.com/800x600/E5E4E2/000000?text=Platinum+Ring',
+            'https://via.placeholder.com/800x600/B87333/000000?text=Diamond+Ring',
+            'https://via.placeholder.com/800x600/DAA520/000000?text=Precious+Item',
         ];
 
         $collateralCount = 0;
 
         foreach ($activeAccounts as $account) {
-            // Create 2-4 collaterals per account
+
             $itemsPerAccount = rand(2, 4);
 
             for ($i = 0; $i < $itemsPerAccount; $i++) {
                 $itemType = $itemTypes[array_rand($itemTypes)];
                 $purity = $purities[array_rand($purities)];
-                $weight = rand(50, 1500) / 10; // 5.0 to 150.0 grams
+                $weight = rand(50, 1500) / 10;
                 $estimatedValue = rand(800, 15000);
-                $startingBid = round($estimatedValue * (rand(60, 80) / 100), 2); // 60-80% of estimated value
+                $startingBid = round($estimatedValue * (rand(60, 80) / 100), 2);
 
-                // Determine status with proper workflow
                 $statusRand = rand(1, 100);
                 if ($statusRand <= 50) {
                     $status = Collateral::STATUS_ACTIVE;
@@ -83,27 +80,24 @@ class CollateralSeeder extends Seeder
                     $approvedBy = $checker->id;
                 }
 
-                // Get a random auction from the same branch as the account
                 $auction = Auction::where('branch_id', $account->branch_id)
                     ->whereIn('status', ['scheduled', 'active'])
                     ->inRandomOrder()
                     ->first();
 
                 if (!$auction) {
-                    // If no auction exists for this branch, skip this collateral
+
                     continue;
                 }
 
-                // Set current highest bid for active collaterals (simulate bidding activity)
                 $currentHighestBid = 0;
                 $highestBidderId = null;
 
                 if ($status === Collateral::STATUS_ACTIVE && rand(1, 100) <= 40) {
-                    // 40% chance of having bids for active collaterals
+
                     $bidIncrease = rand(50, 500);
                     $currentHighestBid = $startingBid + $bidIncrease;
 
-                    // Get a random user as highest bidder (excluding maker and checker)
                     $potentialBidders = User::whereNotIn('username', ['maker01', 'checker01'])
                         ->where('status', 'active')
                         ->inRandomOrder()
@@ -130,13 +124,12 @@ class CollateralSeeder extends Seeder
                     'approved_by_user_id' => $approvedBy,
                 ]);
 
-                // Create 2-4 images for each collateral
                 $imageCount = rand(2, 4);
                 for ($j = 0; $j < $imageCount; $j++) {
                     CollateralImage::create([
                         'collateral_id' => $collateral->id,
                         'image_url' => $sampleImageUrls[array_rand($sampleImageUrls)],
-                        'is_thumbnail' => $j === 0, // First image is thumbnail
+                        'is_thumbnail' => $j === 0,
                         'order_index' => $j,
                     ]);
                 }
@@ -147,7 +140,6 @@ class CollateralSeeder extends Seeder
 
         $this->command->info("Created {$collateralCount} collateral items with images");
 
-        // Display status breakdown
         $statusCounts = [
             'Active' => Collateral::where('status', Collateral::STATUS_ACTIVE)->count(),
             'Pending Approval' => Collateral::where('status', Collateral::STATUS_PENDING_APPROVAL)->count(),

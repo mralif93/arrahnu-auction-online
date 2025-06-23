@@ -6,9 +6,6 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         $this->call([
@@ -16,8 +13,8 @@ class DatabaseSeeder extends Seeder
             AddressSeeder::class,
             BranchSeeder::class,
             AccountSeeder::class,
-            AuctionSeeder::class,  // Create auctions first
-            CollateralSeeder::class,  // Then create collaterals and assign to auctions
+            AuctionSeeder::class,
+            CollateralSeeder::class,
             CollateralImageSeeder::class,
             BidSeeder::class,
             AuctionResultSeeder::class,

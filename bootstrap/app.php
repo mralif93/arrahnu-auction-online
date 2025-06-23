@@ -18,7 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // Register custom middleware
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
-            '2fa.guest' => \App\Http\Middleware\TwoFactorGuestMiddleware::class,
+        
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

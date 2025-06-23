@@ -18,7 +18,16 @@ class AdminMiddleware
     {
         // Check if user is authenticated and is an admin
         if (!Auth::check() || !Auth::user()->isAdmin()) {
-            // Redirect to dashboard with error message
+            // Handle API requests differently from web requests
+            if ($request->expectsJson() || $request->is('api/*')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Access denied. Admin privileges required.',
+                    'error' => 'Unauthorized'
+                ], 403);
+            }
+            
+            // Redirect for web requests
             return redirect()->route('dashboard')->with('error', 'Access denied. Admin privileges required.');
         }
 

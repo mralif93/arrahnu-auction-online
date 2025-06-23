@@ -4,27 +4,30 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\TwoFactorSession;
-use App\Services\TwoFactorService;
+use App\Services\EmailVerificationService;
+use App\Services\AdminApprovalService;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
     use ApiResponse;
-    
-    protected TwoFactorService $twoFactorService;
 
-    public function __construct(TwoFactorService $twoFactorService)
-    {
-        $this->twoFactorService = $twoFactorService;
+    protected $emailVerificationService;
+    protected $adminApprovalService;
+
+    public function __construct(
+        EmailVerificationService $emailVerificationService,
+        AdminApprovalService $adminApprovalService
+    ) {
+        $this->emailVerificationService = $emailVerificationService;
+        $this->adminApprovalService = $adminApprovalService;
     }
 
     /**
@@ -59,11 +62,24 @@ class AuthController extends Controller
                 'role' => $request->role ?? User::ROLE_BIDDER,
                 'status' => User::STATUS_PENDING_APPROVAL,
                 'is_admin' => false,
+                'registration_source' => User::REGISTRATION_SOURCE_API,
+                'email_verification_required' => true,
+                'requires_admin_approval' => true,
             ]);
+
+            // Send email verification
+            $emailSent = $this->emailVerificationService->sendVerificationEmail($user);
+
+            $message = 'Registration successful. ';
+            if ($emailSent) {
+                $message .= 'Please check your email to verify your account. After email verification, your account will be reviewed by our administrators.';
+            } else {
+                $message .= 'Your account is pending email verification and admin approval.';
+            }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Registration successful. Your account is pending approval.',
+                'message' => $message,
                 'data' => [
                     'user' => [
                         'id' => $user->id,
@@ -73,7 +89,10 @@ class AuthController extends Controller
                         'phone_number' => $user->phone_number,
                         'role' => $user->role,
                         'status' => $user->status,
-                    ]
+                        'email_verification_required' => $user->email_verification_required,
+                        'requires_admin_approval' => $user->requires_admin_approval,
+                    ],
+                    'verification_email_sent' => $emailSent,
                 ]
             ], 201);
 
@@ -133,60 +152,67 @@ class AuthController extends Controller
         $credentials = $request->only('email', 'password');
         $remember = $request->boolean('remember');
 
-        // Attempt to authenticate user without logging them in
-        if (Auth::validate($credentials)) {
-            // Make sure user is not logged in yet
-            Auth::logout();
+        // Find user for additional checks
+        $user = User::where('email', $request->email)->first();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'These credentials do not match our records.',
+            ], 401);
+        }
+
+        // Increment login attempts
+        $user->incrementLoginAttempts();
+
+        // Check if account is locked
+        if ($user->isAccountLocked()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Account is temporarily locked due to multiple failed login attempts. Please try again later.',
+                'error_code' => 'ACCOUNT_LOCKED',
+                'locked_until' => $user->account_locked_until,
+            ], 423);
+        }
+
+        // Attempt to authenticate user
+        if (Auth::attempt($credentials, $remember)) {
+            $user = Auth::user();
             
-            $user = User::where('email', $request->email)->first();
-            
-            // Check if user is active
-            if ($user->status !== User::STATUS_ACTIVE) {
+            // Check if user can login (includes all verification and approval checks)
+            if (!$user->canLogin()) {
+                Auth::logout();
+                
+                $message = 'Your account is not ready for login. ';
+                $errorCode = 'ACCOUNT_NOT_READY';
+                
+                if ($user->requiresEmailVerification()) {
+                    $message = 'Please verify your email address before logging in.';
+                    $errorCode = 'EMAIL_NOT_VERIFIED';
+                } elseif ($user->requiresAdminApproval()) {
+                    $message = 'Your account is pending admin approval.';
+                    $errorCode = 'PENDING_APPROVAL';
+                } elseif ($user->status === User::STATUS_REJECTED) {
+                    $message = 'Your account application has been rejected. Please contact support for more information.';
+                    $errorCode = 'ACCOUNT_REJECTED';
+                } elseif ($user->status !== User::STATUS_ACTIVE) {
+                    $message = 'Your account is not active. Please contact support.';
+                    $errorCode = 'ACCOUNT_INACTIVE';
+                }
+                
                 return response()->json([
                     'success' => false,
-                    'message' => 'Your account is not active. Please contact support.',
+                    'message' => $message,
+                    'error_code' => $errorCode,
+                    'verification_status' => $this->emailVerificationService->getVerificationStatus($user),
+                    'approval_status' => $this->adminApprovalService->getApprovalStatus($user),
                 ], 403);
             }
 
-            // Check if 2FA is enabled for this user
-            if ($this->twoFactorService->isEnabled($user)) {
-                // Clean up any existing 2FA sessions for this user
-                TwoFactorSession::where('user_id', $user->id)->delete();
-                
-                // Create new 2FA session in database
-                $sessionToken = TwoFactorSession::generateToken();
-                $expiresAt = now()->addMinutes(15); // 15-minute session timeout
-                
-                TwoFactorSession::create([
-                    'user_id' => $user->id,
-                    'session_token' => $sessionToken,
-                    'remember' => $remember,
-                    'expires_at' => $expiresAt,
-                ]);
-
-                // Generate and send 2FA code
-                if ($this->twoFactorService->generateAndSendCode($user)) {
-                    return $this->twoFactorResponse(
-                        $user, 
-                        $sessionToken, 
-                        config('auth.two_factor.code_expiry', 750)
-                    );
-                } else {
-                    // Clean up the session if email failed
-                    TwoFactorSession::where('session_token', $sessionToken)->delete();
-                    
-                    return $this->errorResponse(
-                        'Failed to send verification code. Please try again.',
-                        500
-                    );
-                }
-            }
-
-            // If 2FA is disabled, log in normally
-            Auth::login($user, $remember);
-            
-            // Update last login time
-            $user->update(['last_login_at' => now()]);
+            // Update login tracking
+            $ipAddress = $request->ip();
+            $userAgent = $request->userAgent();
+            $user->updateLoginTracking(User::LOGIN_SOURCE_API, $ipAddress, $userAgent);
 
             // Create API token
             $token = $user->createToken('api-token')->plainTextToken;
@@ -200,97 +226,7 @@ class AuthController extends Controller
         ], 401);
     }
 
-    /**
-     * Verify 2FA code and complete login.
-     */
-    public function verify2FA(Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'code' => ['required', 'string', 'size:6'],
-            'session_token' => ['required', 'string', 'size:64'],
-        ]);
 
-        if ($validator->fails()) {
-            return $this->errorResponse('Validation failed', 422, $validator->errors());
-        }
-
-        // Find active 2FA session
-        $twoFactorSession = TwoFactorSession::where('session_token', $request->session_token)
-            ->active()
-            ->first();
-
-        if (!$twoFactorSession || $twoFactorSession->isExpired()) {
-            return $this->errorResponse(
-                'Invalid or expired session. Please log in again.',
-                400
-            );
-        }
-
-        $user = $twoFactorSession->user;
-        $remember = $twoFactorSession->remember;
-
-        // Verify the 2FA code
-        $result = $this->twoFactorService->verifyCode($user, $request->code);
-
-        if ($result['success']) {
-            // Delete the 2FA session
-            $twoFactorSession->delete();
-            
-            // Create API token
-            $token = $user->createToken('api-token')->plainTextToken;
-            
-            // Update last login time
-            $user->update(['last_login_at' => now()]);
-
-            return $this->authResponse($user, $token, 'Login successful');
-        }
-
-        return $this->errorResponse(
-            $result['message'],
-            400,
-            ['remaining_attempts' => $result['remaining_attempts'] ?? null]
-        );
-    }
-
-    /**
-     * Resend 2FA code.
-     */
-    public function resend2FA(Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'session_token' => ['required', 'string', 'size:64'],
-        ]);
-
-        if ($validator->fails()) {
-            return $this->errorResponse('Validation failed', 422, $validator->errors());
-        }
-
-        // Find active 2FA session
-        $twoFactorSession = TwoFactorSession::where('session_token', $request->session_token)
-            ->active()
-            ->first();
-
-        if (!$twoFactorSession || $twoFactorSession->isExpired()) {
-            return $this->errorResponse(
-                'Invalid or expired session. Please log in again.',
-                400
-            );
-        }
-
-        $user = $twoFactorSession->user;
-
-        // Generate and send new 2FA code
-        if ($this->twoFactorService->generateAndSendCode($user)) {
-            return $this->successResponse([
-                'expires_in' => config('auth.two_factor.code_expiry', 750)
-            ], 'A new verification code has been sent to your email.');
-        }
-
-        return $this->errorResponse(
-            'Failed to send verification code. Please try again.',
-            500
-        );
-    }
 
     /**
      * Logout user.
@@ -623,6 +559,109 @@ class AuthController extends Controller
                 'error' => config('app.debug') ? $e->getMessage() : null
             ], 500);
         }
+    }
+
+    /**
+     * Verify email address.
+     */
+    public function verifyEmail(Request $request, string $token): JsonResponse
+    {
+        $result = $this->emailVerificationService->verifyEmail($token);
+
+        if ($result['success']) {
+            return response()->json([
+                'success' => true,
+                'message' => $result['message'],
+                'data' => [
+                    'user_id' => $result['user']->id,
+                    'email_verified' => true,
+                    'needs_admin_approval' => $result['needs_admin_approval'],
+                    'can_login' => $result['user']->canLogin(),
+                ]
+            ]);
+        }
+
+        $statusCode = match($result['error_code']) {
+            'TOKEN_EXPIRED' => 410,
+            'ALREADY_VERIFIED' => 409,
+            default => 400
+        };
+
+        return response()->json([
+            'success' => false,
+            'message' => $result['message'],
+            'error_code' => $result['error_code'],
+        ], $statusCode);
+    }
+
+    /**
+     * Resend email verification.
+     */
+    public function resendVerificationEmail(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = User::where('email', $request->email)->first();
+        $result = $this->emailVerificationService->resendVerificationEmail($user);
+
+        if ($result['success']) {
+            return response()->json([
+                'success' => true,
+                'message' => $result['message'],
+            ]);
+        }
+
+        $statusCode = match($result['error_code']) {
+            'ALREADY_VERIFIED' => 409,
+            'RATE_LIMITED' => 429,
+            'MAX_ATTEMPTS_EXCEEDED' => 429,
+            default => 400
+        };
+
+        return response()->json([
+            'success' => false,
+            'message' => $result['message'],
+            'error_code' => $result['error_code'],
+        ], $statusCode);
+    }
+
+    /**
+     * Get verification status.
+     */
+    public function getVerificationStatus(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $user = User::where('email', $request->email)->first();
+        
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'verification_status' => $this->emailVerificationService->getVerificationStatus($user),
+                'approval_status' => $this->adminApprovalService->getApprovalStatus($user),
+                'can_login' => $user->canLogin(),
+            ]
+        ]);
     }
 
     /**

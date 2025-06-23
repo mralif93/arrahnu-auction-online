@@ -190,7 +190,7 @@ class DashboardMonitoring {
     }
 
     init() {
-        console.log('Monitoring Dashboard initialized');
+                        // Monitoring Dashboard initialized
         this.setupEventListeners();
 
         // Add a timeout to prevent infinite loading
