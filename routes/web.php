@@ -14,6 +14,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Admin\ApiController;
 
 
 
@@ -221,6 +222,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/users/{user}/addresses', [App\Http\Controllers\Admin\AddressController::class, 'getUserAddresses'])->name('user-addresses');
         Route::post('/bulk-action', [App\Http\Controllers\Admin\AddressController::class, 'bulkAction'])->name('bulk-action');
     });
+
+    // API Management
+    Route::get('/api', [ApiController::class, 'index'])->name('api.index');
 
 });
 

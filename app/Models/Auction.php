@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Auction extends Model
 {
@@ -98,15 +100,15 @@ class Auction extends Model
      */
     public function collaterals(): HasMany
     {
-        return $this->hasMany(Collateral::class, 'auction_id');
+        return $this->hasMany(Collateral::class);
     }
 
     /**
-     * Get all bids for this auction (through collaterals).
+     * Get all bids for this auction through collaterals.
      */
-    public function bids()
+    public function bids(): HasManyThrough
     {
-        return Bid::whereIn('collateral_id', $this->collaterals()->pluck('id'));
+        return $this->hasManyThrough(Bid::class, Collateral::class);
     }
 
     /**
@@ -297,5 +299,13 @@ class Auction extends Model
             return true;
         }
         return false;
+    }
+
+    /**
+     * Get the auction result.
+     */
+    public function result(): HasOne
+    {
+        return $this->hasOne(AuctionResult::class);
     }
 }
