@@ -372,56 +372,54 @@ class PublicController extends Controller
     }
 
     /**
-     * Get active auctions available for bidding.
+     * Get active auctions with basic details.
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function activeAuctions(Request $request)
+    public function activeAuctions()
     {
-        // Validate request parameters
-        $request->validate([
-            'per_page' => 'nullable|integer|min:1|max:50',
-            'search' => 'nullable|string|max:255'
-        ]);
-
-        // Build query for active auctions
-        $query = Auction::with(['collaterals.images', 'collaterals.bids', 'collaterals.highestBidder'])
+        try {
+            // Get active auctions
+            $auctions = Auction::select([
+                'id',
+                'auction_title',
+                'description',
+                'start_datetime',
+                'end_datetime',
+                'status',
+                'created_at',
+                'updated_at'
+            ])
             ->where('status', 'active')
-            ->where('start_datetime', '<=', now())
-            ->where('end_datetime', '>', now());
+            ->orderBy('end_datetime', 'asc')
+            ->get();
 
-        // Apply search if provided
-        if ($request->has('search')) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('auction_title', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%");
+            // Transform to simple format
+            $auctions->transform(function ($auction) {
+                return [
+                    'id' => $auction->id,
+                    'auction_title' => $auction->auction_title,
+                    'description' => $auction->description,
+                    'start_datetime' => $auction->start_datetime,
+                    'end_datetime' => $auction->end_datetime,
+                    'status' => $auction->status,
+                    'created_at' => $auction->created_at,
+                    'updated_at' => $auction->updated_at
+                ];
             });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Active auctions retrieved successfully',
+                'data' => $auctions
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve active auctions',
+                'error' => config('app.debug') ? $e->getMessage() : 'An unexpected error occurred'
+            ], 500);
         }
-
-        // Order by end datetime (soonest ending first)
-        $query->orderBy('end_datetime', 'asc');
-
-        // Paginate results
-        $perPage = $request->input('per_page', 20);
-        $auctions = $query->paginate($perPage);
-
-        // Transform the data to include computed values
-        $auctions->getCollection()->transform(function ($auction) {
-            $auction->time_remaining = now()->diffInSeconds($auction->end_datetime, false);
-            $auction->total_bids = $auction->collaterals->sum(function($collateral) {
-                return $collateral->bids->count();
-            });
-            $auction->total_value = $auction->collaterals->sum('current_highest_bid_rm');
-            
-            return $auction;
-        });
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Active auctions retrieved successfully',
-            'data' => $auctions
-        ]);
     }
 } 
