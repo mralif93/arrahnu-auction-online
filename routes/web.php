@@ -61,6 +61,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/dashboard/monitoring/activity-feed', [DashboardMonitoringController::class, 'getActivityFeed'])->name('dashboard.monitoring.activity-feed');
     Route::get('/dashboard/monitoring/alerts', [DashboardMonitoringController::class, 'getAlerts'])->name('dashboard.monitoring.alerts');
 
+    // API Monitoring
+    Route::get('/api-monitoring', function () {
+        return view('admin.monitoring.api-status');
+    })->name('api-monitoring');
+
     // Admin Profile Settings
     Route::get('/profile', [DashboardController::class, 'profile'])->name('profile');
 

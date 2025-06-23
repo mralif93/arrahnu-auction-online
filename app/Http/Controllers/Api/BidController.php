@@ -211,56 +211,39 @@ class BidController extends Controller
     }
 
     /**
-     * Get active auctions for bidding.
+     * Get active auctions for public viewing.
      */
     public function activeAuctions(Request $request)
     {
         try {
             $perPage = min($request->get('per_page', 20), 50);
             
-            $query = Auction::with([
-                'collaterals.images',
-                'collaterals.bids' => function($q) {
-                    $q->orderBy('bid_time', 'desc')->limit(3);
-                },
-                'collaterals.highestBidder'
+            $query = Auction::select([
+                'id', 
+                'auction_title', 
+                'description', 
+                'start_datetime', 
+                'end_datetime', 
+                'status'
             ])
             ->where('status', 'active')
             ->where('start_datetime', '<=', now())
             ->where('end_datetime', '>', now());
 
-            // Search functionality
+            // Optional search functionality
             if ($request->has('search')) {
                 $search = $request->search;
                 $query->where(function($q) use ($search) {
                     $q->where('auction_title', 'like', "%{$search}%")
-                      ->orWhere('description', 'like', "%{$search}%")
-                      ->orWhereHas('collaterals', function($collateralQuery) use ($search) {
-                          $collateralQuery->where('item_type', 'like', "%{$search}%")
-                                         ->orWhere('description', 'like', "%{$search}%");
-                      });
+                      ->orWhere('description', 'like', "%{$search}%");
                 });
             }
 
             $auctions = $query->orderBy('end_datetime', 'asc')->paginate($perPage);
 
-            // Add computed fields for mobile
+            // Add computed time remaining
             $auctions->getCollection()->transform(function ($auction) {
                 $auction->time_remaining = $auction->end_datetime->diffInSeconds(now());
-                $auction->total_items = $auction->collaterals->count();
-                $auction->total_bids = $auction->collaterals->sum(function($collateral) {
-                    return $collateral->bids->count();
-                });
-                $auction->total_value = $auction->collaterals->sum('current_highest_bid_rm');
-                
-                // Transform collaterals for mobile
-                $auction->collaterals->transform(function ($collateral) {
-                    $collateral->time_remaining = $collateral->auction->end_datetime->diffInSeconds(now());
-                    $collateral->bid_count = $collateral->bids->count();
-                    $collateral->thumbnail = $collateral->images->first()?->image_url;
-                    return $collateral;
-                });
-
                 return $auction;
             });
 
@@ -274,6 +257,8 @@ class BidController extends Controller
                         'last_page' => $auctions->lastPage(),
                         'per_page' => $auctions->perPage(),
                         'total' => $auctions->total(),
+                        'from' => $auctions->firstItem(),
+                        'to' => $auctions->lastItem(),
                     ]
                 ]
             ]);
@@ -282,7 +267,7 @@ class BidController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve active auctions.',
-                'error' => $e->getMessage()
+                'error' => config('app.debug') ? $e->getMessage() : 'An unexpected error occurred'
             ], 500);
         }
     }

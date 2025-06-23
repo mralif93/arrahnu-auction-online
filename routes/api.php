@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\Api\ApiMonitoringController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,6 +17,24 @@ use App\Http\Controllers\Api\DashboardController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+// ============================================================================
+// API MONITORING ROUTES (Public Access)
+// ============================================================================
+
+Route::prefix('monitoring')->group(function () {
+    Route::get('/status', [ApiMonitoringController::class, 'status']);
+    Route::get('/endpoints', [ApiMonitoringController::class, 'endpoints']);
+    Route::get('/health', [ApiMonitoringController::class, 'health']);
+    Route::get('/performance', [ApiMonitoringController::class, 'performance']);
+    Route::get('/errors', [ApiMonitoringController::class, 'errors']);
+    Route::get('/usage', [ApiMonitoringController::class, 'usage']);
+    Route::get('/resources', [ApiMonitoringController::class, 'resources']);
+    Route::get('/database', [ApiMonitoringController::class, 'database']);
+    Route::get('/cache', [ApiMonitoringController::class, 'cache']);
+    Route::get('/queue', [ApiMonitoringController::class, 'queue']);
+    Route::post('/test-endpoint', [ApiMonitoringController::class, 'testEndpoint']);
+});
 
 // ============================================================================
 // PUBLIC API ROUTES (No Authentication Required)
@@ -161,6 +180,17 @@ Route::middleware('auth:sanctum')->group(function () {
         // Route::apiResource('/collaterals', CollateralController::class);
         // Route::apiResource('/auctions', AuctionController::class);
     });
+});
+
+// Public routes
+Route::get('/auctions/active', [App\Http\Controllers\Api\BidController::class, 'activeAuctions']);
+
+// Public API Routes for Lists
+Route::prefix('lists')->group(function () {
+    Route::get('/auctions', [App\Http\Controllers\Api\PublicController::class, 'auctionsList']);
+    Route::get('/accounts', [App\Http\Controllers\Api\PublicController::class, 'accountsList']);
+    Route::get('/collaterals', [App\Http\Controllers\Api\PublicController::class, 'collateralsList']);
+    Route::get('/branches', [App\Http\Controllers\Api\PublicController::class, 'branchesList']);
 });
 
 // ============================================================================
