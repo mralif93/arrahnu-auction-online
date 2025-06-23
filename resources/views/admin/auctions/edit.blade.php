@@ -234,36 +234,6 @@
                 </div>
                 <div class="p-6">
                     <div class="space-y-6">
-                        <!-- Current Status -->
-                        <div>
-                            <label class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-2">Current Status</label>
-                            <div class="flex items-center space-x-3">
-                                @if($auction->status === 'active')
-                                    <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800">
-                                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        {{ ucfirst(str_replace('_', ' ', $auction->status)) }}
-                                    </span>
-                                @elseif($auction->status === 'pending_approval')
-                                    <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-800">
-                                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        {{ ucfirst(str_replace('_', ' ', $auction->status)) }}
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center px-3 py-2 rounded-lg text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-gray-800">
-                                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v11a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm0 2h12v11H4V4z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        {{ ucfirst(str_replace('_', ' ', $auction->status)) }}
-                                    </span>
-                                @endif
-                            </div>
-                            <p class="text-xs text-[#706f6c] dark:text-[#A1A09A] mt-2">Status cannot be changed during editing</p>
-                        </div>
-
                         <!-- Schedule Fields -->
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                             <!-- Start Date & Time -->
@@ -275,7 +245,6 @@
                                        id="start_datetime"
                                        name="start_datetime"
                                        value="{{ old('start_datetime', $auction->start_datetime->format('Y-m-d\TH:i')) }}"
-                                       min="{{ now()->addHour()->format('Y-m-d\TH:i') }}"
                                        class="w-full px-4 py-3 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded-lg bg-white dark:bg-[#161615] text-[#1b1b18] dark:text-[#EDEDEC] focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
                                        required>
                                 @error('start_datetime')
@@ -315,6 +284,47 @@
                                 </p>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Section -->
+            <div class="bg-white dark:bg-[#161615] rounded-xl border border-[#e3e3e0] dark:border-[#3E3E3A] overflow-hidden">
+                <div class="px-6 py-4 bg-gray-50 dark:bg-[#1a1a19] border-b border-[#e3e3e0] dark:border-[#3E3E3A]">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <h3 class="text-lg font-semibold text-[#1b1b18] dark:text-[#EDEDEC]">Auction Status</h3>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-2">
+                            Status <span class="text-red-500">*</span>
+                        </label>
+                        <select id="status"
+                                name="status"
+                                class="w-full px-4 py-3 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded-lg bg-white dark:bg-[#161615] text-[#1b1b18] dark:text-[#EDEDEC] focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
+                                required>
+                            <option value="draft" {{ old('status', $auction->status) === 'draft' ? 'selected' : '' }}>Draft</option>
+                            <option value="pending_approval" {{ old('status', $auction->status) === 'pending_approval' ? 'selected' : '' }}>Pending Approval</option>
+                            <option value="scheduled" {{ old('status', $auction->status) === 'scheduled' ? 'selected' : '' }}>Scheduled</option>
+                            <option value="active" {{ old('status', $auction->status) === 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="completed" {{ old('status', $auction->status) === 'completed' ? 'selected' : '' }}>Completed</option>
+                            <option value="cancelled" {{ old('status', $auction->status) === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        </select>
+                        @error('status')
+                            <p class="mt-2 text-sm text-red-600 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ $message }}
+                            </p>
+                        @enderror
+                        <p class="mt-1 text-xs text-[#706f6c] dark:text-[#A1A09A]">
+                            Select the initial status for this auction
+                        </p>
                     </div>
                 </div>
             </div>

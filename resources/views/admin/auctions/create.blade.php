@@ -144,7 +144,6 @@
                                    id="start_datetime"
                                    name="start_datetime"
                                    value="{{ old('start_datetime') }}"
-                                   min="{{ now()->addHour()->format('Y-m-d\TH:i') }}"
                                    class="w-full px-4 py-3 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded-lg bg-white dark:bg-[#161615] text-[#1b1b18] dark:text-[#EDEDEC] focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
                                    required>
                             @error('start_datetime')
@@ -183,6 +182,47 @@
                                 When the auction will end
                             </p>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Section -->
+            <div class="bg-white dark:bg-[#161615] rounded-xl border border-[#e3e3e0] dark:border-[#3E3E3A] overflow-hidden">
+                <div class="px-6 py-4 bg-gray-50 dark:bg-[#1a1a19] border-b border-[#e3e3e0] dark:border-[#3E3E3A]">
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <h3 class="text-lg font-semibold text-[#1b1b18] dark:text-[#EDEDEC]">Auction Status</h3>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-[#706f6c] dark:text-[#A1A09A] mb-2">
+                            Status <span class="text-red-500">*</span>
+                        </label>
+                        <select id="status"
+                                name="status"
+                                class="w-full px-4 py-3 border border-[#e3e3e0] dark:border-[#3E3E3A] rounded-lg bg-white dark:bg-[#161615] text-[#1b1b18] dark:text-[#EDEDEC] focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors"
+                                required>
+                            <option value="draft" {{ old('status') === 'draft' ? 'selected' : '' }}>Draft</option>
+                            <option value="pending_approval" {{ old('status') === 'pending_approval' ? 'selected' : '' }}>Pending Approval</option>
+                            <option value="scheduled" {{ old('status') === 'scheduled' ? 'selected' : '' }}>Scheduled</option>
+                            <option value="active" {{ old('status') === 'active' ? 'selected' : '' }}>Active</option>
+                            <option value="completed" {{ old('status') === 'completed' ? 'selected' : '' }}>Completed</option>
+                            <option value="cancelled" {{ old('status') === 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        </select>
+                        @error('status')
+                            <p class="mt-2 text-sm text-red-600 flex items-center">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                {{ $message }}
+                            </p>
+                        @enderror
+                        <p class="mt-1 text-xs text-[#706f6c] dark:text-[#A1A09A]">
+                            Select the initial status for this auction
+                        </p>
                     </div>
                 </div>
             </div>

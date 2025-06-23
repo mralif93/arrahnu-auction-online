@@ -278,45 +278,21 @@
                                         </a>
 
                                         <!-- Edit -->
-                                        @if(in_array($auction->status, ['draft', 'rejected']))
-                                            <a href="{{ route('admin.auctions.edit', $auction) }}"
-                                               class="px-3 py-1 bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-200 text-xs font-medium rounded-full hover:bg-purple-200 dark:hover:bg-purple-900/40 transition-colors">
-                                                Edit
-                                            </a>
-                                        @endif
-
-                                        <!-- Approval Actions -->
-                                        @if($auction->status === 'pending_approval' && auth()->user()->canApprove($auction))
-                                            <form action="{{ route('admin.auctions.approve', $auction) }}" method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit"
-                                                        class="px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200 text-xs font-medium rounded-full hover:bg-green-200 dark:hover:bg-green-900/40 transition-colors"
-                                                        onclick="return confirm('Approve {{ $auction->auction_title }}?')">
-                                                    Approve
-                                                </button>
-                                            </form>
-                                            <form action="{{ route('admin.auctions.reject', $auction) }}" method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit"
-                                                        class="px-3 py-1 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200 text-xs font-medium rounded-full hover:bg-red-200 dark:hover:bg-red-900/40 transition-colors"
-                                                        onclick="return confirm('Reject {{ $auction->auction_title }}?')">
-                                                    Reject
-                                                </button>
-                                            </form>
-                                        @endif
+                                        <a href="{{ route('admin.auctions.edit', $auction) }}"
+                                           class="px-3 py-1 bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-200 text-xs font-medium rounded-full hover:bg-purple-200 dark:hover:bg-purple-900/40 transition-colors">
+                                            Edit
+                                        </a>
 
                                         <!-- Delete -->
-                                        @if(in_array($auction->status, ['draft', 'rejected']) && $auction->collaterals->count() === 0)
-                                            <form action="{{ route('admin.auctions.destroy', $auction) }}" method="POST" class="inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit"
-                                                        class="px-3 py-1 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200 text-xs font-medium rounded-full hover:bg-red-200 dark:hover:bg-red-900/40 transition-colors"
-                                                        onclick="return confirm('Are you sure you want to delete {{ $auction->auction_title }}? This action cannot be undone.')">
-                                                    Delete
-                                                </button>
-                                            </form>
-                                        @endif
+                                        <form action="{{ route('admin.auctions.destroy', $auction) }}" method="POST" class="inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                    class="px-3 py-1 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200 text-xs font-medium rounded-full hover:bg-red-200 dark:hover:bg-red-900/40 transition-colors"
+                                                    onclick="return confirm('Are you sure you want to delete {{ $auction->auction_title }}? This action cannot be undone.')">
+                                                Delete
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
