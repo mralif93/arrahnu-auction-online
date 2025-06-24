@@ -8,8 +8,11 @@ use App\Models\Auction;
 use App\Models\Branch;
 use App\Models\Collateral;
 use App\Models\Bid;
+use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\JsonResponse;
 
 class PublicController extends Controller
 {
@@ -418,6 +421,128 @@ class PublicController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to retrieve active auctions',
+                'error' => config('app.debug') ? $e->getMessage() : 'An unexpected error occurred'
+            ], 500);
+        }
+    }
+
+    /**
+     * Format currency value with RM prefix
+     *
+     * @param float|null $value
+     * @param bool $isPerGram
+     * @return string
+     */
+    private function formatCurrency(?float $value, bool $isPerGram = false): string
+    {
+        if ($value === null) {
+            $formatted = 'RM 0.00';
+        } else {
+            $formatted = 'RM ' . number_format($value, 2);
+        }
+        return $isPerGram ? $formatted . '/g' : $formatted;
+    }
+
+    /**
+     * Calculate time left in hours and minutes
+     *
+     * @param string $endDateTime
+     * @return string
+     */
+    private function getTimeLeft(string $endDateTime): string
+    {
+        $endTime = Carbon::parse($endDateTime);
+        $hours = $endTime->diffInHours(now());
+        $minutes = $endTime->diffInMinutes(now()) % 60;
+        return "{$hours}h {$minutes}m";
+    }
+
+    /**
+     * Get all active auction items grouped by branch and account.
+     * Returns a structured list of all available items for auction
+     * with their current status, pricing, and details.
+     *
+     * @return JsonResponse
+     */
+    public function auctionItems(): JsonResponse
+    {
+        try {
+            // 1. Get all active auction items with their relationships
+            $items = Collateral::with([
+                'account.branch',
+                'auction'
+            ])
+            ->whereHas('auction', function($query) {
+                $query->where('status', 'active');
+            })
+            ->get();
+
+            // 2. Organize items by branch and account
+            $organizedData = [];
+            foreach ($items as $item) {
+                // Skip if account or branch relationship is not loaded
+                if (!$item->account || !$item->account->branch) {
+                    \Log::error('Missing account or branch relationship for collateral:', [
+                        'collateral_id' => $item->id,
+                        'account_id' => $item->account_id
+                    ]);
+                    continue;
+                }
+
+                $branchName = $item->account->branch->name;
+                $accountNo = $item->account->account_title; // Using account_title as account number
+
+                // Create branch if not exists
+                if (!isset($organizedData[$branchName])) {
+                    $organizedData[$branchName] = [];
+                }
+
+                // Create account if not exists
+                if (!isset($organizedData[$branchName][$accountNo])) {
+                    $organizedData[$branchName][$accountNo] = [
+                        'accountName' => $item->account->account_title,
+                        'accountNumber' => $accountNo,
+                        'collaterals' => []
+                    ];
+                }
+
+                // 3. Format item details
+                $itemDetails = [
+                    'id' => $item->id,
+                    'title' => $item->item_type ?? '',
+                    'currentBid' => $this->formatCurrency($item->current_highest_bid_rm),
+                    'timeLeft' => $this->getTimeLeft($item->auction->end_datetime ?? now()),
+                    'category' => $item->category ?? $item->item_type ?? '',
+                    'weight' => ($item->weight_grams ?? '0') . 'g',
+                    'purity' => $item->purity ?? '',
+                    'startingPrice' => $this->formatCurrency($item->starting_bid_rm),
+                    'reservedPrice' => $this->formatCurrency($item->reserved_price_rm),
+                    'totalPrice' => $this->formatCurrency($item->total_price_rm),
+                    'goldType' => $item->gold_type ?? '',
+                    'goldPrice' => $this->formatCurrency($item->gold_price_per_gram_rm, true),
+                    'bidIncrement' => $this->formatCurrency($item->minimum_bid_increment_rm),
+                    'description' => $item->description ?? ''
+                ];
+
+                // Add item to its account's collaterals
+                $organizedData[$branchName][$accountNo]['collaterals'][] = $itemDetails;
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Auction items retrieved successfully',
+                'data' => $organizedData
+            ]);
+
+        } catch (Exception $e) {
+            \Log::error('Error in auctionItems:', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve auction items',
                 'error' => config('app.debug') ? $e->getMessage() : 'An unexpected error occurred'
             ], 500);
         }
