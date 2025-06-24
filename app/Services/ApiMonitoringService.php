@@ -75,40 +75,92 @@ class ApiMonitoringService
         $endpoints = [
             // Public endpoints
             'public' => [
-                'auth_register' => $this->testEndpoint('/api/auth/register', 'POST'),
-                'auth_login' => $this->testEndpoint('/api/auth/login', 'POST'),
-                'auth_forgot_password' => $this->testEndpoint('/api/auth/forgot-password', 'POST'),
-                'auth_reset_password' => $this->testEndpoint('/api/auth/reset-password', 'POST'),
-                'health_check' => $this->testEndpoint('/api/health', 'GET'),
-                'api_info' => $this->testEndpoint('/api/info', 'GET'),
+                'auth_register' => array_merge($this->testEndpoint('/api/auth/register', 'POST'), [
+                    'description' => 'Register a new user account'
+                ]),
+                'auth_login' => array_merge($this->testEndpoint('/api/auth/login', 'POST'), [
+                    'description' => 'Authenticate user and get access token'
+                ]),
+                'auth_forgot_password' => array_merge($this->testEndpoint('/api/auth/forgot-password', 'POST'), [
+                    'description' => 'Send password reset link to email'
+                ]),
+                'auth_reset_password' => array_merge($this->testEndpoint('/api/auth/reset-password', 'POST'), [
+                    'description' => 'Reset user password using token'
+                ]),
+                'health_check' => array_merge($this->testEndpoint('/api/health', 'GET'), [
+                    'description' => 'Check API health status'
+                ]),
+                'api_info' => array_merge($this->testEndpoint('/api/info', 'GET'), [
+                    'description' => 'Get API information and version'
+                ]),
             ],
             
             // Protected endpoints (will be marked as requires_auth)
             'protected' => [
-                'user_profile' => $this->testEndpoint('/api/user/profile', 'GET', [], true),
-                'user_update_profile' => $this->testEndpoint('/api/user/profile', 'PUT', [], true),
-                'user_bidding_activity' => $this->testEndpoint('/api/user/bidding-activity', 'GET', [], true),
-                'user_watchlist' => $this->testEndpoint('/api/user/watchlist', 'GET', [], true),
-                'bids_index' => $this->testEndpoint('/api/bids', 'GET', [], true),
-                'bids_store' => $this->testEndpoint('/api/bids', 'POST', [], true),
-                'bids_active' => $this->testEndpoint('/api/bids/active', 'GET', [], true),
-                'bids_statistics' => $this->testEndpoint('/api/bids/statistics', 'GET', [], true),
-                'auctions_active' => $this->testEndpoint('/api/auctions/active', 'GET', [], true),
-                'addresses_index' => $this->testEndpoint('/api/addresses', 'GET', [], true),
-                'addresses_store' => $this->testEndpoint('/api/addresses', 'POST', [], true),
-                'addresses_statistics' => $this->testEndpoint('/api/addresses/statistics', 'GET', [], true),
+                'user_profile' => array_merge($this->testEndpoint('/api/user/profile', 'GET', [], true), [
+                    'description' => 'Get authenticated user profile'
+                ]),
+                'user_update_profile' => array_merge($this->testEndpoint('/api/user/profile', 'PUT', [], true), [
+                    'description' => 'Update user profile information'
+                ]),
+                'user_bidding_activity' => array_merge($this->testEndpoint('/api/user/bidding-activity', 'GET', [], true), [
+                    'description' => 'Get user bidding history and activity'
+                ]),
+                'user_watchlist' => array_merge($this->testEndpoint('/api/user/watchlist', 'GET', [], true), [
+                    'description' => 'Get user auction watchlist'
+                ]),
+                'bids_index' => array_merge($this->testEndpoint('/api/bids', 'GET', [], true), [
+                    'description' => 'List all user bids'
+                ]),
+                'bids_store' => array_merge($this->testEndpoint('/api/bids', 'POST', [], true), [
+                    'description' => 'Place a new bid'
+                ]),
+                'bids_active' => array_merge($this->testEndpoint('/api/bids/active', 'GET', [], true), [
+                    'description' => 'Get active bids'
+                ]),
+                'bids_statistics' => array_merge($this->testEndpoint('/api/bids/statistics', 'GET', [], true), [
+                    'description' => 'Get bidding statistics'
+                ]),
+                'auctions_active' => array_merge($this->testEndpoint('/api/auctions/active', 'GET', [], true), [
+                    'description' => 'Get active auctions'
+                ]),
+                'addresses_index' => array_merge($this->testEndpoint('/api/addresses', 'GET', [], true), [
+                    'description' => 'List user addresses'
+                ]),
+                'addresses_store' => array_merge($this->testEndpoint('/api/addresses', 'POST', [], true), [
+                    'description' => 'Add new address'
+                ]),
+                'addresses_statistics' => array_merge($this->testEndpoint('/api/addresses/statistics', 'GET', [], true), [
+                    'description' => 'Get address usage statistics'
+                ]),
             ],
             
             // Admin endpoints (will be marked as requires_admin)
             'admin' => [
-                'admin_dashboard_overview' => $this->testEndpoint('/api/admin/dashboard/overview', 'GET', [], true, true),
-                'admin_dashboard_user_analytics' => $this->testEndpoint('/api/admin/dashboard/user-analytics', 'GET', [], true, true),
-                'admin_dashboard_auction_analytics' => $this->testEndpoint('/api/admin/dashboard/auction-analytics', 'GET', [], true, true),
-                'admin_dashboard_system_metrics' => $this->testEndpoint('/api/admin/dashboard/system-metrics', 'GET', [], true, true),
-                'admin_system_status' => $this->testEndpoint('/api/admin/system/status', 'GET', [], true, true),
-                'admin_system_performance' => $this->testEndpoint('/api/admin/system/performance', 'GET', [], true, true),
-                'admin_addresses_index' => $this->testEndpoint('/api/admin/addresses', 'GET', [], true, true),
-                'admin_addresses_statistics' => $this->testEndpoint('/api/admin/addresses/statistics', 'GET', [], true, true),
+                'admin_dashboard_overview' => array_merge($this->testEndpoint('/api/admin/dashboard/overview', 'GET', [], true, true), [
+                    'description' => 'Get admin dashboard overview'
+                ]),
+                'admin_dashboard_user_analytics' => array_merge($this->testEndpoint('/api/admin/dashboard/user-analytics', 'GET', [], true, true), [
+                    'description' => 'Get user analytics data'
+                ]),
+                'admin_dashboard_auction_analytics' => array_merge($this->testEndpoint('/api/admin/dashboard/auction-analytics', 'GET', [], true, true), [
+                    'description' => 'Get auction analytics data'
+                ]),
+                'admin_dashboard_system_metrics' => array_merge($this->testEndpoint('/api/admin/dashboard/system-metrics', 'GET', [], true, true), [
+                    'description' => 'Get system performance metrics'
+                ]),
+                'admin_system_status' => array_merge($this->testEndpoint('/api/admin/system/status', 'GET', [], true, true), [
+                    'description' => 'Get system health status'
+                ]),
+                'admin_system_performance' => array_merge($this->testEndpoint('/api/admin/system/performance', 'GET', [], true, true), [
+                    'description' => 'Get system performance data'
+                ]),
+                'admin_addresses_index' => array_merge($this->testEndpoint('/api/admin/addresses', 'GET', [], true, true), [
+                    'description' => 'List all addresses'
+                ]),
+                'admin_addresses_statistics' => array_merge($this->testEndpoint('/api/admin/addresses/statistics', 'GET', [], true, true), [
+                    'description' => 'Get global address statistics'
+                ]),
             ]
         ];
 
@@ -124,7 +176,9 @@ class ApiMonitoringService
         
         try {
             // Check if route exists
-            if (!Route::has($endpoint)) {
+            $exists = Route::has($endpoint);
+            
+            if (!$exists) {
                 return [
                     'status' => 'unhealthy',
                     'error' => 'Route not found',
@@ -132,7 +186,9 @@ class ApiMonitoringService
                     'requires_auth' => $requiresAuth,
                     'requires_admin' => $requiresAdmin,
                     'method' => $method,
-                    'endpoint' => $endpoint
+                    'endpoint' => $endpoint,
+                    'last_tested' => now()->toISOString(),
+                    'exists' => false
                 ];
             }
 
@@ -145,7 +201,9 @@ class ApiMonitoringService
                     'requires_auth' => $requiresAuth,
                     'requires_admin' => $requiresAdmin,
                     'method' => $method,
-                    'endpoint' => $endpoint
+                    'endpoint' => $endpoint,
+                    'last_tested' => now()->toISOString(),
+                    'exists' => true
                 ];
             }
 
@@ -164,7 +222,9 @@ class ApiMonitoringService
                 'requires_admin' => $requiresAdmin,
                 'method' => $method,
                 'endpoint' => $endpoint,
-                'response_size' => strlen($response->body())
+                'response_size' => strlen($response->body()),
+                'last_tested' => now()->toISOString(),
+                'exists' => true
             ];
 
         } catch (\Exception $e) {
@@ -175,7 +235,9 @@ class ApiMonitoringService
                 'requires_auth' => $requiresAuth,
                 'requires_admin' => $requiresAdmin,
                 'method' => $method,
-                'endpoint' => $endpoint
+                'endpoint' => $endpoint,
+                'last_tested' => now()->toISOString(),
+                'exists' => false
             ];
         }
     }

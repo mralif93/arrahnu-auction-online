@@ -60,24 +60,25 @@
                                             <tr class="hover:bg-[#f8f8f7] dark:hover:bg-[#1a1a19] transition-colors">
                                                 <td class="px-6 py-4 whitespace-nowrap">
                                                     <span class="inline-flex items-center justify-center min-w-[70px] px-3 py-1 rounded-full text-xs font-medium
-                                                        @if($endpoint['method'] === 'GET') bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300
-                                                        @elseif($endpoint['method'] === 'POST') bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300
-                                                        @elseif($endpoint['method'] === 'PUT') bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300
-                                                        @elseif($endpoint['method'] === 'DELETE') bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300
+                                                        @if(($endpoint['method'] ?? 'GET') === 'GET') bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300
+                                                        @elseif(($endpoint['method'] ?? '') === 'POST') bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300
+                                                        @elseif(($endpoint['method'] ?? '') === 'PUT') bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300
+                                                        @elseif(($endpoint['method'] ?? '') === 'DELETE') bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300
                                                         @endif">
-                                                        {{ $endpoint['method'] }}
+                                                        {{ $endpoint['method'] ?? 'GET' }}
                                                     </span>
                                                 </td>
                                                 <td class="px-6 py-4 font-mono text-sm text-[#1b1b18] dark:text-[#EDEDEC] whitespace-nowrap overflow-hidden text-ellipsis">
-                                                    {{ $endpoint['endpoint'] }}
+                                                    {{ $endpoint['endpoint'] ?? 'Unknown Endpoint' }}
                                                 </td>
                                                 <td class="px-6 py-4 text-sm text-[#706f6c] dark:text-[#A1A09A]">
-                                                    {{ $endpoint['description'] }}
+                                                    {{ $endpoint['description'] ?? 'No description available' }}
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap">
                                                     <div class="flex items-center space-x-2">
                                                         @php
-                                                            $statusColor = match($endpoint['status']['health_status']) {
+                                                            $status = $endpoint['status']['status'] ?? 'unknown';
+                                                            $statusColor = match($status) {
                                                                 'healthy' => 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300',
                                                                 'degraded', 'slow' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300',
                                                                 'redirect' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300',
@@ -85,7 +86,7 @@
                                                                 default => 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300'
                                                             };
 
-                                                            $statusIcon = match($endpoint['status']['health_status']) {
+                                                            $statusIcon = match($status) {
                                                                 'healthy' => 'check',
                                                                 'degraded' => 'exclamation',
                                                                 'slow' => 'clock',
@@ -98,31 +99,33 @@
 
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusColor }}">
                                                             <i class="fas fa-{{ $statusIcon }} mr-1"></i>
-                                                            {{ $endpoint['status']['status'] }}
+                                                            {{ $status }}
                                                         </span>
 
                                                         <div class="flex items-center">
-                                                            @if($endpoint['status']['status_code'] > 0)
+                                                            @if(isset($endpoint['status']['status_code']))
                                                                 <span class="text-xs text-[#706f6c] dark:text-[#A1A09A]">
                                                                     {{ $endpoint['status']['status_code'] }}
                                                                 </span>
                                                             @endif
                                                             <button type="button" 
                                                                     class="ml-1 text-[#706f6c] dark:text-[#A1A09A] hover:text-[#1b1b18] dark:hover:text-[#EDEDEC]"
-                                                                    data-tippy-content="{{ $endpoint['status']['message'] }}"
+                                                                    data-tippy-content="{{ $endpoint['status']['message'] ?? $endpoint['status']['error'] ?? 'No additional information' }}"
                                                                     data-tippy-placement="top">
                                                                 <i class="fas fa-info-circle"></i>
                                                             </button>
                                                         </div>
 
-                                                        <span class="text-xs text-[#706f6c] dark:text-[#A1A09A]">
-                                                            {{ \Carbon\Carbon::parse($endpoint['status']['last_tested'])->diffForHumans() }}
-                                                        </span>
+                                                        @if(isset($endpoint['status']['last_tested']))
+                                                            <span class="text-xs text-[#706f6c] dark:text-[#A1A09A]">
+                                                                {{ \Carbon\Carbon::parse($endpoint['status']['last_tested'])->diffForHumans() }}
+                                                            </span>
+                                                        @endif
                                                     </div>
                                                 </td>
                                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                                    @if($endpoint['status']['exists'])
-                                                        @if($endpoint['status']['response_time'] > 0)
+                                                    @if($endpoint['status']['exists'] ?? true)
+                                                        @if(isset($endpoint['status']['response_time']) && $endpoint['status']['response_time'] > 0)
                                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                                                                 @if($endpoint['status']['response_time'] < 0.3) bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300
                                                                 @elseif($endpoint['status']['response_time'] < 1.0) bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300
