@@ -191,7 +191,14 @@
                                 <!-- Status & Verification -->
                                 <td class="px-6 py-4 whitespace-nowrap border-r border-[#e3e3e0] dark:border-[#3E3E3A]">
                                     <div class="space-y-2">
-                                        @if($user->status === 'active')
+                                        @if($user->account_locked_until && $user->account_locked_until->isFuture())
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200">
+                                                <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                                                </svg>
+                                                Locked until {{ $user->account_locked_until->format('M d, H:i') }}
+                                            </span>
+                                        @elseif($user->status === 'active')
                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200">
                                                 <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 8 8">
                                                     <circle cx="4" cy="4" r="3"/>
@@ -258,51 +265,67 @@
                                 </td>
 
                                 <!-- Actions -->
-                                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                                    <div class="flex items-center space-x-2">
+                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <div class="flex items-center justify-end space-x-2">
                                         <!-- View -->
-                                        <a href="{{ route('admin.users.show', $user) }}"
-                                           class="px-3 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 text-xs font-medium rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors">
-                                            View
+                                        <a href="{{ route('admin.users.show', $user) }}" class="text-brand hover:text-brand-dark">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
                                         </a>
 
                                         <!-- Edit -->
-                                        <a href="{{ route('admin.users.edit', $user) }}"
-                                           class="px-3 py-1 bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-200 text-xs font-medium rounded-full hover:bg-purple-200 dark:hover:bg-purple-900/40 transition-colors">
-                                            Edit
+                                        <a href="{{ route('admin.users.edit', $user) }}" class="text-brand hover:text-brand-dark">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                            </svg>
                                         </a>
 
-
-
-                                        <!-- Approval Actions -->
-                                        @if($user->status === 'pending_approval' && Auth::user()->canApprove($user))
-                                            <form method="POST" action="{{ route('admin.users.approve', $user) }}" class="inline">
+                                        <!-- Approve (for pending users) -->
+                                        @if($user->status === 'pending_approval' && auth()->user()->canApprove($user))
+                                            <form action="{{ route('admin.users.approve', $user) }}" method="POST" class="inline">
                                                 @csrf
-                                                <button type="submit"
-                                                        class="px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200 text-xs font-medium rounded-full hover:bg-green-200 dark:hover:bg-green-900/40 transition-colors"
-                                                        onclick="return confirm('Approve user {{ $user->full_name }}?')">
-                                                    Approve
-                                                </button>
-                                            </form>
-                                            <form method="POST" action="{{ route('admin.users.reject', $user) }}" class="inline">
-                                                @csrf
-                                                <button type="submit"
-                                                        class="px-3 py-1 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200 text-xs font-medium rounded-full hover:bg-red-200 dark:hover:bg-red-900/40 transition-colors"
-                                                        onclick="return confirm('Reject user {{ $user->full_name }}?')">
-                                                    Reject
+                                                <button type="submit" class="text-green-600 hover:text-green-800" title="Approve User">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                    </svg>
                                                 </button>
                                             </form>
                                         @endif
 
+                                        <!-- Lock/Unlock -->
+                                        @if($user->id !== Auth::id())
+                                            @if($user->account_locked_until && $user->account_locked_until->isFuture())
+                                                <form action="{{ route('admin.users.unlock', $user) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="text-green-600 hover:text-green-800" title="Unlock Account">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @else
+                                                <form action="{{ route('admin.users.lock', $user) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    <button type="submit" class="text-red-600 hover:text-red-800" title="Lock Account">
+                                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        @endif
+
                                         <!-- Delete -->
                                         @if($user->id !== Auth::id())
-                                            <form method="POST" action="{{ route('admin.users.delete', $user) }}" class="inline">
+                                            <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this user?');">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit"
-                                                        class="px-3 py-1 bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-200 text-xs font-medium rounded-full hover:bg-red-200 dark:hover:bg-red-900/40 transition-colors"
-                                                        onclick="return confirm('Are you sure you want to delete {{ $user->full_name }}? This action cannot be undone.')">
-                                                    Delete
+                                                <button type="submit" class="text-red-600 hover:text-red-800">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                    </svg>
                                                 </button>
                                             </form>
                                         @endif

@@ -90,6 +90,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/{user}', [AdminUserController::class, 'show'])->name('show');
         Route::get('/{user}/edit', [AdminUserController::class, 'edit'])->name('edit');
         Route::put('/{user}', [AdminUserController::class, 'update'])->name('update');
+        Route::delete('/{user}', [AdminUserController::class, 'destroy'])->name('destroy');
         Route::post('/{user}/approve', [AdminUserController::class, 'approve'])->name('approve');
         Route::post('/{user}/reject', [AdminUserController::class, 'reject'])->name('reject');
         Route::post('/{user}/toggle-admin', [AdminUserController::class, 'toggleAdmin'])->name('toggle-admin');
@@ -99,8 +100,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::post('/{user}/send-verification-email', [AdminUserController::class, 'sendVerificationEmail'])->name('send-verification-email');
         Route::post('/{user}/reset-email-verification', [AdminUserController::class, 'resetEmailVerification'])->name('reset-email-verification');
         Route::get('/{user}/verification-status', [AdminUserController::class, 'getVerificationStatus'])->name('verification-status');
-
-        Route::delete('/{user}', [AdminUserController::class, 'destroy'])->name('delete');
+        
+        // Lock/Unlock routes
+        Route::post('/{user}/lock', [AdminUserController::class, 'lock'])->name('lock');
+        Route::post('/{user}/unlock', [AdminUserController::class, 'unlock'])->name('unlock');
     });
 
     // ========================================================================

@@ -414,6 +414,7 @@ class User extends Authenticatable
         $this->update([
             'status' => self::STATUS_ACTIVE,
             'approved_at' => now(),
+            'requires_admin_approval' => false,
             'approved_by_user_id' => $approvedBy->id,
             'approval_notes' => $notes,
             'rejected_at' => null, // Clear any previous rejection

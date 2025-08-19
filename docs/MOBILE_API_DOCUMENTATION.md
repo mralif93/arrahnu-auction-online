@@ -20,6 +20,15 @@ Authorization: Bearer {your-token}
 
 ## 🔐 Authentication APIs
 
+### Registration
+For detailed registration API documentation, see [Mobile Registration API Documentation](MOBILE_REGISTRATION_API.md)
+
+### Other Authentication Endpoints
+- Login
+- Logout
+- Password Reset
+- Email Verification
+
 ### Register User
 **POST** `/auth/register`
 

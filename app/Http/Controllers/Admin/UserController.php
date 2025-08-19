@@ -201,8 +201,6 @@ class UserController extends BaseAdminController
         return redirect()->back()->with('success', $message);
     }
 
-
-
     /**
      * Remove the specified user.
      */
@@ -469,7 +467,56 @@ class UserController extends BaseAdminController
      */
     public function approve(User $user, Request $request)
     {
-        return $this->approveEntity($request, $user);
+        try {
+            // Check permissions
+            if (!$this->canApprove($user)) {
+                throw new \Exception('You do not have permission to approve this user.');
+            }
+
+            // Check if user is pending approval
+            if ($user->status !== User::STATUS_PENDING_APPROVAL) {
+                throw new \Exception('User is not pending approval.');
+            }
+
+            // Directly approve the user with all required fields
+            $user->approveAccount(Auth::user(), $request->notes ?? null);
+
+            // Log the action
+            \Log::info('User approved by admin', [
+                'user_id' => $user->id,
+                'admin_id' => Auth::id(),
+                'admin_email' => Auth::user()->email,
+            ]);
+
+            $message = "User {$user->full_name} has been approved successfully.";
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $message,
+                    'user' => $user->fresh(['creator', 'approvedBy'])
+                ]);
+            }
+
+            return redirect()->back()->with('success', $message);
+        } catch (\Exception $e) {
+            \Log::error('Failed to approve user', [
+                'user_id' => $user->id,
+                'admin_id' => Auth::id(),
+                'error' => $e->getMessage()
+            ]);
+
+            $message = 'Failed to approve user: ' . $e->getMessage();
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $message
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', $message);
+        }
     }
 
     /**
@@ -478,6 +525,53 @@ class UserController extends BaseAdminController
     public function reject(User $user, Request $request)
     {
         return $this->rejectEntity($request, $user);
+    }
+
+    /**
+     * Lock a user account.
+     */
+    public function lock(User $user, Request $request)
+    {
+        // Prevent admin from locking their own account
+        if ($user->id === Auth::id()) {
+            return redirect()->back()->with('error', 'You cannot lock your own account.');
+        }
+
+        $user->login_attempts = 5; // Max attempts
+        $user->account_locked_until = now()->addMinutes(30);
+        $user->save();
+
+        $message = "Account locked for {$user->full_name} until " . $user->account_locked_until->format('M d, Y H:i:s');
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message
+            ]);
+        }
+
+        return redirect()->back()->with('success', $message);
+    }
+
+    /**
+     * Unlock a user account.
+     */
+    public function unlock(User $user, Request $request)
+    {
+        $user->login_attempts = 0;
+        $user->account_locked_until = null;
+        $user->save();
+
+        $message = "Account unlocked for {$user->full_name}";
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message
+            ]);
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 
     /**

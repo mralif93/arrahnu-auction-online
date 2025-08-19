@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
 abstract class BaseAdminController extends Controller
 {
@@ -184,10 +185,15 @@ abstract class BaseAdminController extends Controller
                 throw new \Exception("{$this->entityName} is not pending approval.");
             }
 
-            $entity->update([
-                'status' => 'active',
-                'approved_by_user_id' => Auth::id(),
-            ]);
+            // Special handling for User model to ensure proper approval
+            if ($entity instanceof User) {
+                $entity->approveAccount(Auth::user(), $request->notes ?? null);
+            } else {
+                $entity->update([
+                    'status' => 'active',
+                    'approved_by_user_id' => Auth::id(),
+                ]);
+            }
 
             $entityName = $this->getEntityDisplayName($entity);
             $message = "{$this->entityName} '{$entityName}' has been approved and is now active.";
@@ -269,19 +275,27 @@ abstract class BaseAdminController extends Controller
         switch ($action) {
             case 'approve':
                 if ($entity->status === 'pending_approval' && $this->canApprove($entity)) {
-                    $entity->update([
-                        'status' => 'active',
-                        'approved_by_user_id' => Auth::id()
-                    ]);
+                    if ($entity instanceof \App\Models\User) {
+                        $entity->approveAccount(Auth::user());
+                    } else {
+                        $entity->update([
+                            'status' => 'active',
+                            'approved_by_user_id' => Auth::id()
+                        ]);
+                    }
                     return true;
                 }
                 break;
             case 'reject':
                 if ($entity->status === 'pending_approval' && $this->canApprove($entity)) {
-                    $entity->update([
-                        'status' => 'rejected',
-                        'approved_by_user_id' => Auth::id()
-                    ]);
+                    if ($entity instanceof \App\Models\User) {
+                        $entity->rejectAccount(Auth::user());
+                    } else {
+                        $entity->update([
+                            'status' => 'rejected',
+                            'approved_by_user_id' => Auth::id()
+                        ]);
+                    }
                     return true;
                 }
                 break;
