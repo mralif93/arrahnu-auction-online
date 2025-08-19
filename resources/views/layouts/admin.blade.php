@@ -116,10 +116,10 @@
                     </a>
 
                     <!-- API -->
-                    <a href="{{ route('admin.api.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('admin.api.*') ? 'text-brand bg-brand/5' : 'text-[#706f6c] dark:text-[#A1A09A] hover:text-[#1b1b18] dark:hover:text-[#EDEDEC] hover:bg-[#f8f8f7] dark:hover:bg-[#1a1a19]' }} rounded-lg transition-colors">
+                    <!-- <a href="{{ route('admin.api.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('admin.api.*') ? 'text-brand bg-brand/5' : 'text-[#706f6c] dark:text-[#A1A09A] hover:text-[#1b1b18] dark:hover:text-[#EDEDEC] hover:bg-[#f8f8f7] dark:hover:bg-[#1a1a19]' }} rounded-lg transition-colors">
                         <i class='bx bx-code-alt text-xl mr-3'></i>
                         API
-                    </a>
+                    </a> -->
 
                     <!-- User -->
                     <a href="{{ route('admin.users.index') }}" class="flex items-center px-3 py-2 text-sm font-medium {{ request()->routeIs('admin.users.*') ? 'text-brand bg-brand/5' : 'text-[#706f6c] dark:text-[#A1A09A] hover:text-[#1b1b18] dark:hover:text-[#EDEDEC] hover:bg-[#f8f8f7] dark:hover:bg-[#1a1a19]' }} rounded-lg transition-colors">

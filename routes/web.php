@@ -227,7 +227,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     });
 
     // API Management
-    Route::get('/api', [ApiController::class, 'index'])->name('api.index');
+    // Route::get('/api', [ApiController::class, 'index'])->name('api.index');
 
 });
 
