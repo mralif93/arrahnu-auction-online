@@ -80,8 +80,7 @@ class CollateralSeeder extends Seeder
                     $approvedBy = $checker->id;
                 }
 
-                $auction = Auction::where('branch_id', $account->branch_id)
-                    ->whereIn('status', ['scheduled', 'active'])
+                $auction = Auction::whereIn('status', ['scheduled', 'active'])
                     ->inRandomOrder()
                     ->first();
 

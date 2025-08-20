@@ -1,0 +1,56 @@
+# ArRahnu Auction Online - Production Docker Configuration
+# For local development, use docker-compose.local.yaml instead
+
+services:
+  # PHP Application
+  app:
+    build: ./php
+    container_name: arrahnu_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - arrahnu_network
+    depends_on:
+      - db
+
+  # Nginx Web Server
+  nginx:
+    build: ./nginx
+    container_name: arrahnu_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/var/www/html
+      - ./ssl:/etc/nginx/ssl
+    networks:
+      - arrahnu_network
+    depends_on:
+      - app
+
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: arrahnu_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: arrahnu_auction
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_USER: arrahnu_user
+      MYSQL_PASSWORD: user123
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - arrahnu_network
+
+volumes:
+  db_data:
+
+networks:
+  arrahnu_network:
+    driver: bridge
