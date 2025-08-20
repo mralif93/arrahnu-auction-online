@@ -28,15 +28,15 @@ echo
 
 case $REPLY in
     1)
-        ENV_FILE="docker.env.local"
+        ENV_FILE=".env-docker.local"
         ENV_NAME="Local Development"
         ;;
     2)
-        ENV_FILE="docker.env.development"
+        ENV_FILE=".env-docker.development"
         ENV_NAME="Development Server"
         ;;
     3)
-        ENV_FILE="docker.env.production"
+        ENV_FILE=".env-docker.production"
         ENV_NAME="Production Server"
         ;;
     *)

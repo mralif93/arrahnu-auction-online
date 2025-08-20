@@ -24,3 +24,10 @@ Homestead.yaml
 npm-debug.log
 Thumbs.db
 yarn-error.log
+
+# Docker Environment Files
+.env-docker
+.env-docker-development
+.env-docker-local
+.env-docker-production
+.env-docker-sit

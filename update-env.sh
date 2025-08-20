@@ -15,13 +15,13 @@ if [ ! -f ".env" ]; then
     exit 1
 fi
 
-# Update .env from docker.env.local
-if [ -f "docker.env.local" ]; then
-    echo "Updating .env from docker.env.local..."
-    cp docker.env.local .env
+# Update .env from .env-docker.local
+if [ -f ".env-docker.local" ]; then
+    echo "Updating .env from .env-docker.local..."
+    cp .env-docker.local .env
     echo "✅ .env file updated"
 else
-    echo "Warning: docker.env.local not found"
+    echo "Warning: .env-docker.local not found"
 fi
 
 # Show current configuration

@@ -18,17 +18,17 @@ fi
 # Setup local environment
 echo "Setting up local environment..."
 if [ ! -f ".env" ]; then
-    if [ -f "docker.env.local" ]; then
-        cp docker.env.local .env
-        echo "Local environment file copied from docker.env.local"
+    if [ -f ".env-docker.local" ]; then
+        cp .env-docker.local .env
+        echo "Local environment file copied from .env-docker.local"
     else
         echo "Warning: No local environment file found. Please create one manually."
     fi
 else
-    # Update .env with latest docker.env.local
-    if [ -f "docker.env.local" ]; then
-        cp docker.env.local .env
-        echo "Local environment file updated from docker.env.local"
+    # Update .env with latest .env-docker.local
+    if [ -f ".env-docker.local" ]; then
+        cp .env-docker.local .env
+        echo "Local environment file updated from .env-docker.local"
     fi
 fi
 

@@ -21,7 +21,7 @@
 - **Environment Variables**: Added local configuration
 - **Container Names**: `arrahnu_app_local`, `arrahnu_nginx_local`, `arrahnu_db_local`
 
-#### **3. Local Environment (`docker.env.local`)**
+#### **3. Local Environment (`.env-docker.local`)**
 - **APP_URL**: `http://localhost:8080`
 - **APP_ENV**: `local`
 - **APP_DEBUG**: `true`
@@ -29,7 +29,7 @@
 - **Mail**: Logged to files (no SMTP required)
 
 #### **4. Local Deployment Script (`deploy-local.sh`)**
-- **Automatic Environment Setup**: Copies `docker.env.local` to `.env`
+- **Automatic Environment Setup**: Copies `.env-docker.local` to `.env`
 - **Local Service Management**: Uses local docker-compose file
 - **Health Checks**: Waits for services to be ready
 
@@ -96,8 +96,8 @@ docker-compose -f docker-compose.local.yaml restart
 ```
 ├── docker-compose.yaml          # Production (SSL + domain)
 ├── docker-compose.local.yaml    # Local development (localhost)
-├── docker.env                   # Production environment
-├── docker.env.local            # Local environment
+├── .env-docker                   # Production environment
+├── .env-docker.local            # Local environment
 ├── deploy.sh                   # Production deployment
 ├── deploy-local.sh             # Local deployment
 ├── nginx/

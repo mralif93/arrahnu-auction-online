@@ -30,7 +30,7 @@ cd arrahnu-auction-online
 ### 2. Environment Configuration
 ```bash
 # Copy the Docker environment file
-cp docker.env .env
+cp .env-docker .env
 
 # Generate application key
 docker run --rm -v $(pwd):/app -w /app composer:latest composer install --no-dev --optimize-autoloader

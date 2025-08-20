@@ -18,7 +18,7 @@ setup-ssl.sh
 
 # Environment files
 .env
-docker.env
+.env-docker
 
 # IDE
 .vscode/

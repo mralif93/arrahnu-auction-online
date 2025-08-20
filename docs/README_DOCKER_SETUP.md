@@ -12,7 +12,7 @@
 - **File**: `docker-compose.local.yaml`
 - **Domain**: `localhost:8080`
 - **Protocol**: HTTP only
-- **Environment**: `docker.env.local`
+- **Environment**: `.env-docker.local`
 - **Debug Mode**: Enabled
 - **Mail**: Logged to files
 
@@ -46,7 +46,7 @@
 - **File**: `docker-compose.yaml`
 - **Domain**: `arrahnuauction.muamalat.com.my`
 - **Protocol**: HTTPS with SSL
-- **Environment**: `docker.env`
+- **Environment**: `.env-docker`
 - **Debug Mode**: Disabled
 - **Mail**: SMTP configuration
 
@@ -70,8 +70,8 @@
 ```
 ├── docker-compose.yaml          # Production configuration
 ├── docker-compose.local.yaml    # Local development
-├── docker.env                   # Production environment
-├── docker.env.local            # Local environment
+├── .env-docker                   # Production environment
+├── .env-docker.local            # Local environment
 ├── deploy.sh                   # Production deployment
 ├── deploy-local.sh             # Local deployment
 ├── nginx/
@@ -115,7 +115,7 @@ docker-compose down
 
 ## 🔧 **Environment Variables**
 
-### **Local (.env from docker.env.local)**
+### **Local (.env from .env-docker.local)**
 ```bash
 APP_URL=http://localhost:8080
 APP_ENV=local
@@ -123,7 +123,7 @@ APP_DEBUG=true
 DB_HOST=db
 ```
 
-### **Production (.env from docker.env)**
+### **Production (.env from .env-docker)**
 ```bash
 APP_URL=https://arrahnuauction.muamalat.com.my
 APP_ENV=production

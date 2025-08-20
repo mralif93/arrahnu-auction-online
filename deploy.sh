@@ -61,9 +61,9 @@ setup_environment() {
     
     # Copy environment file if .env doesn't exist
     if [ ! -f ".env" ]; then
-        if [ -f "docker.env" ]; then
-            cp docker.env .env
-            print_success "Environment file copied from docker.env"
+        if [ -f ".env-docker" ]; then
+            cp .env-docker .env
+            print_success "Environment file copied from .env-docker"
         else
             echo "Warning: No .env file found. Please create one manually."
         fi

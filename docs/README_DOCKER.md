@@ -56,7 +56,7 @@ docker-compose logs
 - `php/` - PHP configuration files
 - `deploy.sh` - Simple deployment script
 - `setup-ssl.sh` - SSL certificate setup
-- `docker.env` - Environment variables
+- `.env-docker` - Environment variables
 
 ## Domain
 Configured for: `https://arrahnuauction.muamalat.com.my/`
