@@ -3,40 +3,42 @@
 # Database will be provided by Google Cloud (Cloud SQL, Firestore, etc.)
 
 services:
-  # PHP Application
-  app:
-    build: ./php
-    container_name: arrahnu_app
-    restart: unless-stopped
-    working_dir: /var/www/html
-    volumes:
-      - ./:/var/www/html
-    networks:
-      - arrahnu_network
-    # No database dependency - will connect to Google Cloud
-    healthcheck:
-      test: ["CMD", "php", "-r", "echo 'PHP is running';"]
-      timeout: 10s
-      retries: 5
-      start_period: 10s
-
-  # Nginx Web Server
   nginx:
-    build: ./nginx
-    container_name: arrahnu_nginx
-    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
     ports:
       - "80:80"
-      - "443:443"
     volumes:
-      - ./:/var/www/html
-      - ./ssl:/etc/nginx/ssl
-    networks:
-      - arrahnu_network
+      - ./:/var/www/html/
+      - ./nginx/logs:/logs
+    links:
+      - php
     depends_on:
-      app:
-        condition: service_healthy
+      - php
 
-networks:
-  arrahnu_network:
-    driver: bridge
+  php:
+    build:
+      context: .
+      dockerfile: php/Dockerfile
+    command: bash -c "source /startup.sh && php-fpm"
+    volumes:
+      - ./:/var/www/html/
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RUN_FULL_SEEDING=false
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+volumes:
+  redis_data:
+    driver: local
