@@ -9,8 +9,8 @@ COPY nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
 # Create startup script to fix permissions
-COPY nginx/start-nginx.sh /start-nginx.sh
-RUN chmod +x /start-nginx.sh
+COPY nginx/startup.sh /startup.sh
+RUN chmod +x /startup.sh
 
 # Use custom startup script
 CMD ["/startup.sh"]
