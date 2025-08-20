@@ -1,21 +1,18 @@
-FROM nginx:1.25-alpine
+FROM nginx:stable
 
-# Install OpenSSL for certificate generation
-RUN apk add --no-cache openssl
+# Remove default configurations
+RUN rm /etc/nginx/conf.d/default.conf
+RUN rm /etc/nginx/nginx.conf
 
-# Create SSL directory
-RUN mkdir -p /etc/nginx/ssl
+# Copy custom configurations
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
-# Copy custom configuration
-COPY nginx.conf /etc/nginx/nginx.conf
-COPY default.conf /etc/nginx/conf.d/default.conf
+# Create startup script to fix permissions
+COPY nginx/start-nginx.sh /start-nginx.sh
+RUN chmod +x /start-nginx.sh
 
-# Create startup script
-COPY startup.sh /startup.sh
-RUN chmod +x /startup.sh
-
-# Expose ports
-EXPOSE 80 443
-
-# Start Nginx
+# Use custom startup script
 CMD ["/startup.sh"]
+
+

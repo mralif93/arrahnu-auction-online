@@ -10,15 +10,15 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             UserSeeder::class,
-            AddressSeeder::class,
-            BranchSeeder::class,
-            AccountSeeder::class,
-            AuctionSeeder::class,
-            CollateralSeeder::class,
-            CollateralImageSeeder::class,
-            BidSeeder::class,
-            AuctionResultSeeder::class,
-            AuditLogSeeder::class,
+            // AddressSeeder::class,
+            // BranchSeeder::class,
+            // AccountSeeder::class,
+            // AuctionSeeder::class,
+            // CollateralSeeder::class,
+            // CollateralImageSeeder::class,
+            // BidSeeder::class,
+            // AuctionResultSeeder::class,
+            // AuditLogSeeder::class,
         ]);
     }
 }

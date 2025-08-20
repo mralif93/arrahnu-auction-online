@@ -1,67 +1,65 @@
-FROM php:8.2-fpm-alpine
-
-# Install system dependencies
-RUN apk add --no-cache \
-    git \
-    curl \
-    libpng-dev \
-    libxml2-dev \
-    zip \
-    unzip \
-    postgresql-dev \
-    freetype-dev \
-    libjpeg-turbo-dev \
-    oniguruma-dev \
-    libzip-dev \
-    icu-dev
-
-# Install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install \
-        pdo \
-        pdo_pgsql \
-        pgsql \
-        mbstring \
-        exif \
-        pcntl \
-        bcmath \
-        gd \
-        intl \
-        zip
-
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Start from the base PHP image with FPM
+FROM php:8.3-fpm
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy custom PHP configuration
-COPY php.ini /usr/local/etc/php/php.ini
+# Install PHP extensions and system dependencies
+RUN apt-get update && apt-get install -y \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
+    libgmp-dev \
+    libzip-dev \
+    libpq-dev \
+    curl \
+    git \
+    unzip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd bcmath pdo_pgsql pgsql gmp zip \
+    && pecl install redis && docker-php-ext-enable redis \
+    && rm -rf /var/lib/apt/lists/*
 
-# Create startup script
-COPY startup.sh /startup.sh
-RUN chmod +x /startup.sh
+# Install npm (Node.js)
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs
 
-# Create system user
-RUN addgroup -g 1000 www && \
-    adduser -u 1000 -G www -s /bin/sh -D www
+# Setup Composer
+COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 
-# Copy application files
+# Copy PHP configuration
+COPY php/php.ini /usr/local/etc/php/conf.d/custom.ini
+
+# Copy startup script
+COPY php/startup.sh /startup.sh
+
+# Create necessary directories
+RUN mkdir -p /var/www/html/bootstrap/cache \
+    /var/www/html/storage/framework/cache \
+    /var/www/html/storage/framework/sessions \
+    /var/www/html/storage/framework/views \
+    /var/www/html/storage/logs
+
+# Copy application code
 COPY . /var/www/html
 
-# Create required directories and set permissions
-RUN mkdir -p /var/www/html/storage \
-    && mkdir -p /var/www/html/bootstrap/cache \
-    && chown -R www:www /var/www/html \
-    && chmod -R 755 /var/www/html \
-    && chmod -R 777 /var/www/html/storage \
-    && chmod -R 777 /var/www/html/bootstrap/cache
+# Install PHP dependencies as root first
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
-# Expose port
+# Install Node.js dependencies as root
+RUN npm ci
+
+# Build frontend assets as root
+RUN npm run build
+
+# Set proper permissions after all installations
+RUN chown -R www-data:www-data /var/www/html
+RUN chmod -R 755 /var/www/html
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chmod +x /startup.sh
+
+# Expose port 9000
 EXPOSE 9000
 
-# Switch to non-root user
-USER www
-
-# Start PHP-FPM
-CMD ["/startup.sh"]
+# Use the startup script
+CMD ["bash", "-c", "source /startup.sh && php-fpm"]

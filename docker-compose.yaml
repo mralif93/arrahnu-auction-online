@@ -1,5 +1,6 @@
 # ArRahnu Auction Online - Production Docker Configuration
 # For local development, use docker-compose.local.yaml instead
+# Database will be provided by Google Cloud (Cloud SQL, Firestore, etc.)
 
 services:
   # PHP Application
@@ -12,8 +13,12 @@ services:
       - ./:/var/www/html
     networks:
       - arrahnu_network
-    depends_on:
-      - db
+    # No database dependency - will connect to Google Cloud
+    healthcheck:
+      test: ["CMD", "php", "-r", "echo 'PHP is running';"]
+      timeout: 10s
+      retries: 5
+      start_period: 10s
 
   # Nginx Web Server
   nginx:
@@ -29,27 +34,8 @@ services:
     networks:
       - arrahnu_network
     depends_on:
-      - app
-
-  # MySQL Database
-  db:
-    image: mysql:8.0
-    container_name: arrahnu_db
-    restart: unless-stopped
-    environment:
-      MYSQL_DATABASE: arrahnu_auction
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_USER: arrahnu_user
-      MYSQL_PASSWORD: user123
-    volumes:
-      - db_data:/var/lib/mysql
-    ports:
-      - "3306:3306"
-    networks:
-      - arrahnu_network
-
-volumes:
-  db_data:
+      app:
+        condition: service_healthy
 
 networks:
   arrahnu_network:
