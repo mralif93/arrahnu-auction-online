@@ -4,15 +4,17 @@ FROM nginx:stable
 RUN rm /etc/nginx/conf.d/default.conf
 RUN rm /etc/nginx/nginx.conf
 
-# Copy custom configurations
-COPY nginx/default.conf /etc/nginx/conf.d/default.conf
-COPY nginx/nginx.conf /etc/nginx/nginx.conf
+# Copy custom configurations (context is ./nginx, so copy directly)
+COPY default.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/nginx.conf
 
-# Create startup script to fix permissions
-COPY nginx/startup.sh /startup.sh
-RUN chmod +x /startup.sh
+# Create necessary directories
+RUN mkdir -p /var/www/html
 
-# Use custom startup script
-CMD ["/startup.sh"]
+# Expose ports
+EXPOSE 80 443
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]
 
 
