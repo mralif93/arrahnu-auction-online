@@ -13,32 +13,41 @@ cd /opt/arrahnu/bm-gc-repo-arrahnu-stg/ArRahnu_02
 
 echo "📁 Current directory: $(pwd)"
 
-# Copy updated nginx configuration
-echo "📋 Copying updated nginx configuration (HTTP only)..."
-cp nginx/default.conf /etc/nginx/conf.d/
+# Check if Docker containers are running
+echo "🐳 Checking Docker containers..."
+if ! docker ps | grep -q "arrahnu_02-nginx-1"; then
+    echo "❌ Nginx container is not running"
+    echo "   Starting containers..."
+    docker compose up -d
+    sleep 5
+fi
 
-# Test nginx configuration
-echo "🧪 Testing nginx configuration..."
-if nginx -t; then
+# Copy updated nginx configuration to the container
+echo "📋 Copying updated nginx configuration to Docker container..."
+docker cp nginx/default.conf arrahnu_02-nginx-1:/etc/nginx/conf.d/default.conf
+
+# Test nginx configuration inside the container
+echo "🧪 Testing nginx configuration inside container..."
+if docker exec arrahnu_02-nginx-1 nginx -t; then
     echo "✅ Nginx configuration is valid"
 else
     echo "❌ Nginx configuration test failed"
     exit 1
 fi
 
-# Reload nginx
-echo "🔄 Reloading nginx..."
-nginx -s reload
+# Reload nginx inside the container
+echo "🔄 Reloading nginx inside container..."
+docker exec arrahnu_02-nginx-1 nginx -s reload
 
 echo "✅ Web application fixed! Redirect loop removed."
 echo ""
 echo "🌐 Your site should now be accessible at:"
 echo "   HTTP: http://arrahnuauction.sit.muamalat.com.my"
 echo ""
-echo "📊 Check nginx status: systemctl status nginx"
-echo "📝 View logs: tail -f /var/log/nginx/error.log"
+echo "📊 Check container status: docker ps"
+echo "📝 View nginx logs: docker logs arrahnu_02-nginx-1"
 echo ""
-echo "🚀 To restart Docker services:"
+echo "🚀 If you need to restart all services:"
 echo "   docker compose down"
 echo "   docker compose up -d"
 echo ""
