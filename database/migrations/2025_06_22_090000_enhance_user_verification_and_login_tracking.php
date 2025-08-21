@@ -20,7 +20,16 @@ return new class extends Migration
             $table->text('last_login_user_agent')->nullable()->after('last_login_ip');
             
             // Enhanced verification workflow
-            $table->timestampTz('email_verified_at')->nullable()->after('email_verification_sent_at');
+            // Check if email_verification_sent_at exists, if not add it after email
+            if (!Schema::hasColumn('users', 'email_verification_sent_at')) {
+                $table->timestampTz('email_verification_sent_at')->nullable()->after('email');
+            }
+            
+            // Add email_verified_at after email_verification_sent_at (or email if it doesn't exist)
+            if (!Schema::hasColumn('users', 'email_verified_at')) {
+                $table->timestampTz('email_verified_at')->nullable()->after('email_verification_sent_at');
+            }
+            
             $table->boolean('requires_admin_approval')->default(true)->after('email_verified_at');
             $table->timestampTz('approved_at')->nullable()->after('approved_by_user_id');
             $table->timestampTz('rejected_at')->nullable()->after('approved_at');
