@@ -1,46 +1,52 @@
-# ArRahnu Auction Online - Production Docker Configuration
-# For local development, use docker-compose.local.yaml instead
-# Database will be provided by Google Cloud (Cloud SQL, Firestore, etc.)
+version: '3.8'
 
 services:
   nginx:
     build:
-      context: .
-      dockerfile: nginx/Dockerfile
+      context: ./nginx
+      dockerfile: Dockerfile
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./:/var/www/html/
-      - ./nginx/logs:/logs
-      - ./nginx/certs:/etc/nginx/certs
-    links:
-      - php
+      - .:/var/www/html
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - php
+    networks:
+      - arrahnu-network
+    restart: unless-stopped
 
   php:
     build:
-      context: .
-      dockerfile: php/Dockerfile
-    command: bash -c "source /startup.sh && php-fpm"
+      context: ./php
+      dockerfile: Dockerfile
     volumes:
-      - ./:/var/www/html/
+      - .:/var/www/html
+      - ./php/php.ini:/usr/local/etc/php/conf.d/custom.ini
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - RUN_FULL_SEEDING=false
+      - PHP_FPM_USER=www-data
+      - PHP_FPM_GROUP=www-data
+    user: "1000:1000"
     depends_on:
       - redis
+    networks:
+      - arrahnu-network
+    restart: unless-stopped
 
   redis:
-    image: redis:7-alpine
+    image: redis:7.4-alpine
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes
+    networks:
+      - arrahnu-network
+    restart: unless-stopped
 
 volumes:
   redis_data:
-    driver: local
+
+networks:
+  arrahnu-network:
+    driver: bridge

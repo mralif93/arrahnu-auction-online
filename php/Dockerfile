@@ -27,41 +27,23 @@ RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
     && apt-get install -y nodejs
 
 # Setup Composer
-COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy PHP configuration
-COPY php/php.ini /usr/local/etc/php/conf.d/custom.ini
+# Create www-data user and set proper permissions
+RUN usermod -u 1000 www-data && groupmod -g 1000 www-data
+
+# Set proper ownership and permissions for the working directory
+RUN chown -R www-data:www-data /var/www/html
 
 # Copy startup script
-COPY php/startup.sh /startup.sh
+COPY startup.sh /usr/local/bin/startup.sh
+RUN chmod +x /usr/local/bin/startup.sh
 
-# Create necessary directories
-RUN mkdir -p /var/www/html/bootstrap/cache \
-    /var/www/html/storage/framework/cache \
-    /var/www/html/storage/framework/sessions \
-    /var/www/html/storage/framework/views \
-    /var/www/html/storage/logs
-
-# Copy application code
-COPY . /var/www/html
-
-# Install PHP dependencies as root first
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
-
-# Install Node.js dependencies as root
-RUN npm ci
-
-# Build frontend assets as root
-RUN npm run build
-
-# Set proper permissions after all installations
-RUN chown -R www-data:www-data /var/www/html
-RUN chmod -R 755 /var/www/html
-RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-RUN chmod +x /startup.sh
+# Switch to www-data user
+USER www-data
 
 # Expose port 9000
 EXPOSE 9000
 
-# Use the startup script
-CMD ["bash", "-c", "source /startup.sh && php-fpm"]
+# Start PHP-FPM
+CMD ["php-fpm"]
