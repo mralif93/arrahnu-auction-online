@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Starting Jariahfund Laravel Application..."
+echo "🚀 Starting ArRahnu Auction Laravel Application..."
 
 # Wait for all services to be fully up
 echo "⏳ Waiting for all services to be ready..."
