@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     libpq-dev \
     default-mysql-client \
-    libmysqlclient-dev \
+    libmariadb-dev \
     curl \
     git \
     unzip \
