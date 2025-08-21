@@ -6,10 +6,12 @@ echo "🚀 Starting ArRahnu Auction Laravel Application..."
 echo "⏳ Waiting for all services to be ready..."
 sleep 5
 
-# Set proper permissions for all files (needed because of volume mounts)
-echo "🔐 Setting permissions..."
-chown -R www-data:www-data /var/www/html
-chmod -R 755 /var/www/html
+# Set proper permissions for Laravel-specific directories only (avoid git files)
+echo "🔐 Setting permissions for Laravel directories..."
+chown -R www-data:www-data /var/www/html/storage
+chown -R www-data:www-data /var/www/html/bootstrap
+chown -R www-data:www-data /var/www/html/public
+chmod -R 755 /var/www/html/public
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Ensure critical Laravel files are readable
