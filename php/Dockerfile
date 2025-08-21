@@ -45,5 +45,5 @@ USER www-data
 # Expose port 9000
 EXPOSE 9000
 
-# Start PHP-FPM
-CMD ["php-fpm"]
+# Use the startup script
+CMD ["/usr/local/bin/startup.sh"]

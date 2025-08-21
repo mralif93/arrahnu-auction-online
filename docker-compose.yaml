@@ -24,7 +24,6 @@ services:
     environment:
       - PHP_FPM_USER=www-data
       - PHP_FPM_GROUP=www-data
-    user: "1000:1000"
     depends_on:
       - redis
     networks:
