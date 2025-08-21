@@ -12,11 +12,13 @@ RUN apt-get update && apt-get install -y \
     libgmp-dev \
     libzip-dev \
     libpq-dev \
+    default-mysql-client \
+    libmysqlclient-dev \
     curl \
     git \
     unzip \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd bcmath pdo_pgsql pgsql gmp zip \
+    && docker-php-ext-install -j$(nproc) gd bcmath pdo_mysql mysqli pdo_pgsql pgsql gmp zip \
     && pecl install redis && docker-php-ext-enable redis \
     && rm -rf /var/lib/apt/lists/*
 
