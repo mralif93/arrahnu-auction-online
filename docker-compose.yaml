@@ -11,7 +11,7 @@ services:
   # =============================================================================
   app:
     build:
-      context: .
+      context: ./docker/php
       dockerfile: Dockerfile
     container_name: arrahnu_app
     restart: unless-stopped
@@ -20,7 +20,6 @@ services:
       - .env
     volumes:
       - ./:/var/www
-      - ./docker/php/local.ini:/usr/local/etc/php/conf.d/local.ini
     networks:
       - arrahnu_network
     depends_on:
@@ -46,14 +45,15 @@ services:
   # WEB SERVER (NGINX)
   # =============================================================================
   webserver:
-    image: nginx:alpine
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
     container_name: arrahnu_nginx
     restart: unless-stopped
     ports:
       - "8000:80"
     volumes:
       - ./:/var/www
-      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/
     networks:
       - arrahnu_network
     depends_on:
