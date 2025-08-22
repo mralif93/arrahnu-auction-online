@@ -45,6 +45,9 @@ COPY . /var/www/html
 # Install PHP dependencies as root first
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
+# Install Predis Redis library specifically
+RUN composer require predis/predis --no-interaction
+
 # Install Node.js dependencies as root
 RUN npm ci
 
