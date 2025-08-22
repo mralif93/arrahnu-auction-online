@@ -23,14 +23,18 @@ RUN pecl install redis && docker-php-ext-enable redis
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Copy custom PHP configuration
-COPY php.ini /usr/local/etc/php/conf.d/custom.ini
+COPY local.ini /usr/local/etc/php/conf.d/custom.ini
 
 # Set working directory
 WORKDIR /var/www
 
-# Create www-data user if it doesn't exist
-RUN groupadd -g 1000 www-data && \
-    useradd -u 1000 -ms /bin/bash -g www-data www-data
+# Ensure www-data user has correct permissions
+RUN usermod -u 1000 www-data && \
+    groupmod -g 1000 www-data
+
+# Copy startup script (as root)
+COPY startup.sh /usr/local/bin/startup.sh
+RUN chmod +x /usr/local/bin/startup.sh
 
 # Change ownership of working directory
 RUN chown -R www-data:www-data /var/www
@@ -40,10 +44,6 @@ USER www-data
 
 # Expose port 9000 and start php-fpm server
 EXPOSE 9000
-
-# Copy startup script
-COPY startup.sh /usr/local/bin/startup.sh
-RUN chmod +x /usr/local/bin/startup.sh
 
 # Start PHP-FPM using startup script
 CMD ["/usr/local/bin/startup.sh", "start"]

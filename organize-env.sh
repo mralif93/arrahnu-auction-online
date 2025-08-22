@@ -103,6 +103,14 @@ show_templates() {
         echo -e "${GREEN}✅ .env-organized - Clean, organized template${NC}"
     fi
     
+    if [ -f .env-local-development ]; then
+        echo -e "${GREEN}✅ .env-local-development - Local Docker development${NC}"
+    fi
+    
+    if [ -f .env-server-production ]; then
+        echo -e "${GREEN}✅ .env-server-production - Server production deployment${NC}"
+    fi
+    
     if [ -f .env-docker-basic ]; then
         echo -e "${GREEN}✅ .env-docker-basic - Basic Docker template${NC}"
     fi
@@ -113,6 +121,11 @@ show_templates() {
     
     echo ""
     echo "Use: cp <template> .env"
+    echo ""
+    echo -e "${BLUE}Environment Selection Guide:${NC}"
+    echo "  - Local development with Docker: .env-local-development"
+    echo "  - Server production deployment: .env-server-production"
+    echo "  - Basic Docker setup: .env-docker-basic"
 }
 
 # Function to clean up old environment files

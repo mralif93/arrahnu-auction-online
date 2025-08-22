@@ -34,3 +34,6 @@ yarn-error.log
 .env-google-cloud
 .env-organized
 .env.backup.20250822_120311
+.env-local-development
+.gitignore
+.env-server-production

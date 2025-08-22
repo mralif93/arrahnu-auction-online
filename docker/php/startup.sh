@@ -4,7 +4,9 @@ echo "🚀 Starting PHP-FPM Service..."
 
 # Function to check if PHP-FPM is running
 check_php_fpm() {
-    if pgrep -x "php-fpm" > /dev/null; then
+    if [ -f "/tmp/php-fpm.pid" ] && kill -0 $(cat /tmp/php-fpm.pid) 2>/dev/null; then
+        return 0
+    elif ps aux | grep -v grep | grep "php-fpm" > /dev/null; then
         return 0
     else
         return 1
@@ -45,7 +47,7 @@ reload_php_fpm() {
     
     if check_php_fpm; then
         # Get PHP-FPM master process PID
-        MASTER_PID=$(pgrep -f "php-fpm: master")
+        MASTER_PID=$(ps aux | grep "php-fpm: master" | grep -v grep | awk '{print $2}' | head -1)
         if [ ! -z "$MASTER_PID" ]; then
             kill -USR2 $MASTER_PID
             echo "✅ PHP-FPM reload signal sent"

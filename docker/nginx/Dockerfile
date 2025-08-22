@@ -17,5 +17,6 @@ EXPOSE 80
 COPY startup.sh /usr/local/bin/startup.sh
 RUN chmod +x /usr/local/bin/startup.sh
 
-# Start nginx using startup script
-CMD ["/usr/local/bin/startup.sh", "start"]
+# Override entrypoint completely and start nginx using startup script
+ENTRYPOINT ["/bin/sh", "-c"]
+CMD ["/usr/local/bin/startup.sh start"]
