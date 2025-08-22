@@ -11,7 +11,6 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libgmp-dev \
     libzip-dev \
-    libpq-dev \
     curl \
     git \
     unzip \
