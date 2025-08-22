@@ -1,110 +1,40 @@
-# =============================================================================
-# ARRAHNU AUCTION ONLINE - DOCKER COMPOSE CONFIGURATION
-# =============================================================================
-# This file defines the complete Docker environment for local development
-# Services: Laravel App, Nginx, Redis
-# =============================================================================
-
 services:
-  # =============================================================================
-  # LARAVEL APPLICATION (PHP-FPM)
-  # =============================================================================
-  app:
+  nginx:
     build:
-      context: ./docker/php
-      dockerfile: Dockerfile
-    container_name: arrahnu_app
-    restart: unless-stopped
-    working_dir: /var/www/
-    env_file:
-      - .env
+      context: .
+      dockerfile: nginx/Dockerfile
+    ports:
+      - "80:80"
     volumes:
-      - ./:/var/www
-    networks:
-      - arrahnu_network
+      - ./:/var/www/html/
+      - ./nginx/logs:/logs
+    links:
+      - php
+    depends_on:
+      - php
+
+  php:
+    build:
+      context: .
+      dockerfile: php/Dockerfile
+    command: bash -c "source /startup.sh && php-fpm"
+    volumes:
+      - ./:/var/www/html/
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RUN_FULL_SEEDING=false
     depends_on:
       - redis
-    environment:
-      - PHP_FPM_USER=www-data
-      - PHP_FPM_GROUP=www-data
-      - DB_HOST=${DB_HOST}
-      - DB_DATABASE=${DB_DATABASE}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_PORT=${DB_PORT}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_PORT=${REDIS_PORT}
-    healthcheck:
-      test: ["CMD", "php-fpm", "-t"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
 
-  # =============================================================================
-  # WEB SERVER (NGINX)
-  # =============================================================================
-  webserver:
-    build:
-      context: ./docker/nginx
-      dockerfile: Dockerfile
-    container_name: arrahnu_nginx
-    restart: unless-stopped
-    ports:
-      - "8000:80"
-    volumes:
-      - ./:/var/www
-    networks:
-      - arrahnu_network
-    depends_on:
-      - app
-    environment:
-      - NGINX_HOST=localhost
-      - NGINX_PORT=80
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  # =============================================================================
-  # DATABASE (GOOGLE CLOUD SQL - EXTERNAL)
-  # =============================================================================
-  # Note: Database connection is handled via environment variables
-  # pointing to Google Cloud SQL instance
-
-  # =============================================================================
-  # CACHE & SESSION STORE (REDIS)
-  # =============================================================================
   redis:
-    image: redis:7.4-alpine
-    container_name: arrahnu_redis
-    restart: unless-stopped
+    image: redis:7-alpine
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    networks:
-      - arrahnu_network
-    command: redis-server --appendonly yes --requirepass secret --maxmemory 256mb --maxmemory-policy allkeys-lru
-    healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
+    command: redis-server --appendonly yes
 
-# =============================================================================
-# NETWORKS
-# =============================================================================
-networks:
-  arrahnu_network:
-    driver: bridge
-    name: arrahnu_network
-
-# =============================================================================
-# VOLUMES
-# =============================================================================
 volumes:
   redis_data:
     driver: local
-    name: arrahnu_redisdata
